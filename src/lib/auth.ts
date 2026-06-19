@@ -77,12 +77,34 @@ export const auth = betterAuth({
     github: {
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      mapProfileToUser: (profile) => {
+        if (!profile.email) {
+          throw new Error("GitHub did not return a public email address. Please make your primary email public on GitHub or use another sign-in method.");
+        }
+        return {
+          email: profile.email,
+          name: profile.name || profile.login,
+          image: profile.avatar_url,
+          emailVerified: true, // Handled and verified by Better Auth fetching primary verified emails
+        };
+      },
     },
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? {
           google: {
             clientId: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            mapProfileToUser: (profile) => {
+              if (profile.email_verified !== true) {
+                throw new Error("Your Google account email must be verified to sign in.");
+              }
+              return {
+                email: profile.email,
+                name: profile.name,
+                image: profile.picture,
+                emailVerified: true,
+              };
+            },
           },
         }
       : {}),
@@ -134,4 +156,18 @@ export const auth = betterAuth({
     }),
     bearer(),
   ],
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user, ctx) => {
+          if (ctx && ctx.path && ctx.path.includes("/callback/")) {
+            if (!user.emailVerified) {
+              throw new Error("Your social account email is not verified. Please verify it in your provider settings before signing up.");
+            }
+          }
+          return { data: user };
+        },
+      },
+    },
+  },
 });
