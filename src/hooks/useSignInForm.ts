@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { signIn, authClient } from "@/lib/auth-client";
+import { checkAccountExists } from "@/lib/actions/check-account";
 
 export function useSignInForm() {
   const [email, setEmail] = useState("");
@@ -51,6 +52,17 @@ export function useSignInForm() {
     setResendSuccess("");
     setIsEmailUnverified(false);
     setIsLoading(true);
+
+    const check = await checkAccountExists(email);
+    if (check.exists && check.status === "oauth_only") {
+      setIsLoading(false);
+      setGeneralError(
+        `An account with this email exists. Try signing in with ${
+          check.provider === "github" ? "GitHub" : "Google"
+        } instead.`
+      );
+      return;
+    }
 
     const { error } = await signIn.email({ email, password });
 
