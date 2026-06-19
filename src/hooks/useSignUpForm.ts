@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signUp, authClient } from "@/lib/auth-client";
+import { signIn, signUp, authClient } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
 
 export type AccountStatus =
@@ -169,7 +169,7 @@ export function useSignUpForm() {
     setResendSuccess("");
     setResendError("");
     setAccountStatus(null);
-    await signUp.social({ provider });
+    await signIn.social({ provider });
     setSocialLoading("");
   };
 
