@@ -41,6 +41,10 @@ export function HomeClient() {
   }, [session]);
 
   const handleUnlink = async (providerId: string) => {
+    const hasCredentials = accounts.some((a) => a.providerId === "credential");
+    if (!hasCredentials) {
+      throw new Error("You must have a password login configured to disconnect social accounts.");
+    }
     const { error } = await unlinkAccount({ providerId });
     if (error) {
       throw new Error(error.message || "Unlinking failed");

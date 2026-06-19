@@ -48,11 +48,35 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg role="img" viewBox="0 0 24 24" className={className}>
+      <path
+        fill="currentColor"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="currentColor"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="currentColor"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <path
+        fill="currentColor"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+      />
+    </svg>
+  );
+}
+
 const providerConfig: Record<
   string,
   { label: string; icon: React.ComponentType<{ className?: string }> }
 > = {
   github: { label: "GitHub", icon: GithubIcon },
+  google: { label: "Google", icon: GoogleIcon },
   credential: { label: "Email & Password", icon: Mail },
 };
 
@@ -73,12 +97,6 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const [isLinking, setIsLinking] = useState<string | null>(null);
 
-  const sortedAccounts = accounts
-    .filter((a) => providerConfig[a.providerId])
-    .sort((a, b) => (a.providerId === "credential" ? 1 : -1));
-
-  const hasGithub = accounts.some((a) => a.providerId === "github");
-
   const handleConfirm = async () => {
     if (!unlinkingProvider) return;
     setIsUnlinking(true);
@@ -94,7 +112,7 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
     }
   };
 
-  const handleLinkSocial = async (provider: "github") => {
+  const handleLinkSocial = async (provider: "github" | "google") => {
     setIsLinking(provider);
     try {
       await signIn.social({
@@ -107,6 +125,9 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
       setIsLinking(null);
     }
   };
+
+  const hasCredentials = accounts.some((a) => a.providerId === "credential");
+  const socialProvidersList = ["github", "google"] as const;
 
   return (
     <Card>
@@ -133,69 +154,84 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
           </div>
         </div>
 
-        {sortedAccounts.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-slate-500 tracking-wider">
-              LINKED ACCOUNTS
+        {/* Socials Section */}
+        <div className="pt-4 border-t border-border/40 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 tracking-wider">
+              SOCIALS
             </p>
-            <div className="flex flex-wrap gap-2">
-              {sortedAccounts.map((account) => {
-                const config = providerConfig[account.providerId];
-                if (!config) return null;
-                const Icon = config.icon;
-                const isOnlyOne = sortedAccounts.length === 1;
-                return (
-                  <span
-                    key={account.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium text-foreground transition-all"
-                  >
-                    <Icon className="size-3.5 text-muted-foreground" />
-                    {config.label}
-                    <button
-                      type="button"
-                      disabled={isOnlyOne}
-                      title={
-                        isOnlyOne
-                          ? "Keep at least one sign-in connection"
-                          : `Disconnect ${config.label}`
-                      }
-                      className="-mr-0.5 ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-30 transition-colors"
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Connect or disconnect your social sign-in methods.
+            </p>
+          </div>
+
+          <div className="space-y-2.5">
+            {socialProvidersList.map((p) => {
+              const config = providerConfig[p];
+              if (!config) return null;
+              const Icon = config.icon;
+              const linkedAccount = accounts.find((a) => a.providerId === p);
+              const isLinked = !!linkedAccount;
+
+              return (
+                <div
+                  key={p}
+                  className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-card hover:bg-accent/10 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex size-9 items-center justify-center rounded-md border bg-muted/30">
+                      <Icon className="size-5 text-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{config.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {isLinked ? "Connected" : "Not connected"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {isLinked ? (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={!hasCredentials || isUnlinking}
                       onClick={() => {
-                        setUnlinkingProvider(account.providerId);
+                        setUnlinkingProvider(p);
                         setOpenDialog(true);
                       }}
+                      title={
+                        !hasCredentials
+                          ? "Email & password login must be configured to disconnect social accounts."
+                          : `Disconnect ${config.label}`
+                      }
                     >
-                      <X className="size-3" />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
+                      Disconnect
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isLinking !== null}
+                      onClick={() => handleLinkSocial(p)}
+                    >
+                      {isLinking === p ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        "Connect"
+                      )}
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        )}
 
-        {/* Action to connect new providers if missing */}
-        {!hasGithub && (
-          <div className="pt-2 border-t border-border/40">
-            <p className="text-xs font-medium text-slate-500 tracking-wider mb-2">
-              CONNECT NEW PROVIDER
+          {!hasCredentials && (
+            <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-border/30">
+              💡 <strong>Note:</strong> You must have a registered email and password login (Credentials) configured before you can disconnect any social accounts.
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 text-xs h-9 hover:bg-accent"
-              onClick={() => handleLinkSocial("github")}
-              disabled={isLinking === "github"}
-            >
-              {isLinking === "github" ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <GithubIcon className="size-3.5 text-muted-foreground" />
-              )}
-              Link GitHub Account
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="flex items-center gap-3 text-sm text-muted-foreground pt-1">
           <Calendar className="size-4 shrink-0" />
