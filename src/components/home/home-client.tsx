@@ -1,14 +1,25 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
+import { useSession, listAccounts } from "@/lib/auth-client";
 import { DashboardHeader } from "@/components/home/dashboard-header";
 import { ProfileCard } from "@/components/home/profile-card";
 import { QuickActions } from "@/components/home/quick-actions";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+interface Account {
+  id: string;
+  providerId: string;
+  accountId: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  scopes: string[];
+}
 
 export function HomeClient() {
   const { data: session, isPending } = useSession();
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,6 +27,14 @@ export function HomeClient() {
       router.push("/sign-in");
     }
   }, [isPending, session, router]);
+
+  useEffect(() => {
+    if (session) {
+      listAccounts().then(({ data }) => {
+        if (data) setAccounts(data as Account[]);
+      });
+    }
+  }, [session]);
 
   if (isPending) {
     return (
@@ -40,7 +59,7 @@ export function HomeClient() {
               You are signed in and ready to go.
             </p>
           </div>
-          <ProfileCard session={session} />
+          <ProfileCard session={session} accounts={accounts} />
           <QuickActions />
         </div>
       </main>

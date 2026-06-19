@@ -20,14 +20,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { signUp } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -91,7 +90,7 @@ export function SignUpForm({
       return;
     }
 
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (

@@ -20,14 +20,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
 export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +53,7 @@ export function SignInForm({
       return;
     }
 
-    router.push("/");
+    window.location.href = "/";
   };
 
   const handleSocialLogin = async (provider: "github") => {
