@@ -21,8 +21,8 @@ export function useResetPasswordForm() {
 
     if (!newPassword) {
       newErrors.newPassword = "Password is required";
-    } else if (newPassword.length < 8) {
-      newErrors.newPassword = "Password must be at least 8 characters";
+    } else if (newPassword.length < 10) {
+      newErrors.newPassword = "Password must be at least 10 characters";
     }
 
     if (newPassword !== confirmPassword) {
