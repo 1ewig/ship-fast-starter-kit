@@ -20,8 +20,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { signUp, authClient } from "@/lib/auth-client";
+import { checkAccountExists } from "@/lib/actions/check-account";
 
 import { Loader2, Eye, EyeOff, MailCheck } from "lucide-react";
+
+type AccountStatus =
+  | "verified"
+  | "unverified"
+  | "oauth_only"
+  | "banned"
+  | null;
 
 export function SignUpForm({
   className,
@@ -35,6 +43,7 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
+  const [accountStatus, setAccountStatus] = useState<AccountStatus>(null);
 
   const [success, setSuccess] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -82,10 +91,40 @@ export function SignUpForm({
     e.preventDefault();
     setGeneralError("");
     setErrors({});
+    setAccountStatus(null);
 
     if (!validate()) return;
 
     setIsLoading(true);
+
+    const check = await checkAccountExists(email);
+
+    if (check.exists) {
+      setIsLoading(false);
+      setAccountStatus(check.status);
+
+      switch (check.status) {
+        case "verified":
+          setGeneralError(
+            "An account with this email already exists. Try signing in instead."
+          );
+          break;
+        case "unverified":
+          setGeneralError(
+            "An account with this email exists but hasn't been verified yet."
+          );
+          break;
+        case "oauth_only":
+          setGeneralError(
+            `An account with this email exists. Try signing in with ${check.provider === "github" ? "GitHub" : "Google"} instead.`
+          );
+          break;
+        case "banned":
+          setGeneralError("This account has been suspended.");
+          break;
+      }
+      return;
+    }
 
     const { error } = await signUp.email({ email, password, name });
 
@@ -93,7 +132,9 @@ export function SignUpForm({
       const msg = error.message?.toLowerCase() || "";
 
       if (error.status === 429) {
-        setGeneralError("Too many requests. Please wait a moment before trying again.");
+        setGeneralError(
+          "Too many requests. Please wait a moment before trying again."
+        );
       } else if (msg.includes("already") || msg.includes("exist")) {
         setGeneralError(
           "An account with this email already exists. Try signing in instead."
@@ -119,13 +160,14 @@ export function SignUpForm({
   };
 
   const handleResendVerification = async () => {
-    if (!submittedEmail) return;
+    const targetEmail = submittedEmail || email;
+    if (!targetEmail) return;
     setIsResending(true);
     setResendSuccess("");
     setResendError("");
 
     const { error } = await authClient.sendVerificationEmail({
-      email: submittedEmail,
+      email: targetEmail,
       callbackURL: "/",
     });
 
@@ -222,10 +264,66 @@ export function SignUpForm({
           <form onSubmit={handleSubmit} noValidate>
             <FieldGroup>
               {generalError && (
-                <FieldError
-                  errors={[{ message: generalError }]}
-                  className="text-center"
-                />
+                <div className="space-y-2">
+                  <FieldError
+                    errors={[{ message: generalError }]}
+                    className="text-center"
+                  />
+                  {accountStatus === "verified" && (
+                    <a
+                      href="/sign-in"
+                      className="block text-center text-sm text-primary underline underline-offset-4 hover:text-primary/80"
+                    >
+                      Go to sign in
+                    </a>
+                  )}
+                  {accountStatus === "unverified" && (
+                    <div className="space-y-2">
+                      {resendSuccess && (
+                        <p className="text-sm text-green-600 font-medium text-center">
+                          {resendSuccess}
+                        </p>
+                      )}
+                      {resendError && (
+                        <p className="text-sm text-destructive font-medium text-center">
+                          {resendError}
+                        </p>
+                      )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleResendVerification}
+                        disabled={resendCooldown > 0 || isResending}
+                      >
+                        {isResending ? (
+                          <>
+                            <Loader2 className="animate-spin" />
+                            Sending...
+                          </>
+                        ) : resendCooldown > 0 ? (
+                          `Resend in ${resendCooldown}s`
+                        ) : (
+                          "Resend verification email"
+                        )}
+                      </Button>
+                      <a
+                        href="/sign-in"
+                        className="block text-center text-sm text-muted-foreground hover:text-primary underline underline-offset-4"
+                      >
+                        Go to sign in
+                      </a>
+                    </div>
+                  )}
+                  {accountStatus === "oauth_only" && (
+                    <a
+                      href="/sign-in"
+                      className="block text-center text-sm text-primary underline underline-offset-4 hover:text-primary/80"
+                    >
+                      Go to sign in
+                    </a>
+                  )}
+                </div>
               )}
 
               <Field>
