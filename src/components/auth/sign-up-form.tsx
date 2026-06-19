@@ -18,10 +18,10 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { signUp } from "@/lib/auth-client";
+import { useState, useEffect } from "react";
+import { signUp, authClient } from "@/lib/auth-client";
 
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, MailCheck } from "lucide-react";
 
 export function SignUpForm({
   className,
@@ -35,6 +35,21 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
+
+  const [success, setSuccess] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendSuccess, setResendSuccess] = useState("");
+  const [resendError, setResendError] = useState("");
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -75,10 +90,18 @@ export function SignUpForm({
     const { error } = await signUp.email({ email, password, name });
 
     if (error) {
-      if (error.message?.toLowerCase().includes("email")) {
+      const msg = error.message?.toLowerCase() || "";
+
+      if (error.status === 429) {
+        setGeneralError("Too many requests. Please wait a moment before trying again.");
+      } else if (msg.includes("already") || msg.includes("exist")) {
+        setGeneralError(
+          "An account with this email already exists. Try signing in instead."
+        );
+      } else if (msg.includes("email")) {
         setErrors((p) => ({
           ...p,
-          email: error.message || "This email is already in use",
+          email: error.message || "Invalid email address",
         }));
       } else {
         setGeneralError(
@@ -90,8 +113,101 @@ export function SignUpForm({
       return;
     }
 
-    window.location.href = "/";
+    setSubmittedEmail(email);
+    setSuccess(true);
+    setIsLoading(false);
   };
+
+  const handleResendVerification = async () => {
+    if (!submittedEmail) return;
+    setIsResending(true);
+    setResendSuccess("");
+    setResendError("");
+
+    const { error } = await authClient.sendVerificationEmail({
+      email: submittedEmail,
+      callbackURL: "/",
+    });
+
+    setIsResending(false);
+
+    if (error) {
+      if (error.status === 429) {
+        setResendError("Too many requests. Please wait before trying again.");
+      } else {
+        setResendError(error.message || "Failed to resend verification email.");
+      }
+    } else {
+      setResendSuccess("Verification email sent! Check your inbox.");
+      setResendCooldown(60);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
+                <MailCheck className="size-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <CardTitle className="text-xl">Check your email</CardTitle>
+                <CardDescription>
+                  We sent a verification link to{" "}
+                  <span className="font-medium text-foreground">
+                    {submittedEmail}
+                  </span>
+                </CardDescription>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Please verify your email before signing in. Check your spam
+                folder if you don&apos;t see it.
+              </p>
+
+              {resendSuccess && (
+                <p className="text-sm text-green-600 font-medium">
+                  {resendSuccess}
+                </p>
+              )}
+              {resendError && (
+                <p className="text-sm text-destructive font-medium">
+                  {resendError}
+                </p>
+              )}
+
+              <div className="flex flex-col gap-2 w-full pt-2">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleResendVerification}
+                  disabled={resendCooldown > 0 || isResending}
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : resendCooldown > 0 ? (
+                    `Resend in ${resendCooldown}s`
+                  ) : (
+                    "Resend verification email"
+                  )}
+                </Button>
+                <a
+                  href="/sign-in"
+                  className="text-sm text-muted-foreground hover:text-primary underline underline-offset-4 text-center pt-1"
+                >
+                  Back to sign in
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

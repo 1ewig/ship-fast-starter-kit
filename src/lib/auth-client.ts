@@ -21,4 +21,6 @@ export const {
   signOut,
   listAccounts,
   unlinkAccount,
+  requestPasswordReset,
+  resetPassword,
 } = authClient;

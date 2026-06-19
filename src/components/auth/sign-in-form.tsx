@@ -78,16 +78,19 @@ export function SignInForm({
     const { error } = await signIn.email({ email, password });
 
     if (error) {
-      const message =
-        error.status === 401
-          ? "Invalid email or password"
-          : error.message || "Something went wrong. Please try again.";
-      setGeneralError(message);
+      const msg = error.message?.toLowerCase() || "";
 
-      // Detect unverified email errors to prompt user with a resend button
-      const isUnverified = error.message?.toLowerCase().includes("verify") || error.message?.toLowerCase().includes("verification");
-      if (isUnverified) {
+      if (error.status === 401) {
+        setGeneralError("Invalid email or password");
+      } else if (error.status === 403 || msg.includes("verify") || msg.includes("verification")) {
+        setGeneralError("Please verify your email address before signing in.");
         setIsEmailUnverified(true);
+      } else if (error.status === 429) {
+        setGeneralError("Too many sign-in attempts. Please wait a few minutes.");
+      } else if (error.status === 404) {
+        setGeneralError("No account found with this email address.");
+      } else {
+        setGeneralError(error.message || "Something went wrong. Please try again.");
       }
 
       setIsLoading(false);
@@ -204,7 +207,7 @@ export function SignInForm({
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <a
-                    href="#"
+                    href="/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
