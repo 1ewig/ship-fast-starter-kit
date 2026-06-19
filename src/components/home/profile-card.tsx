@@ -258,16 +258,12 @@ export function ProfileCard({
                     <Button
                       variant="destructive"
                       size="sm"
-                      disabled={!canDisconnect || isUnlinking}
+                      disabled={isUnlinking}
                       onClick={() => {
                         setUnlinkingProvider(p);
                         setOpenDialog(true);
                       }}
-                      title={
-                        !canDisconnect
-                          ? "You must have at least one other login method connected to disconnect this account."
-                          : `Disconnect ${config.label}`
-                      }
+                      title={`Disconnect ${config.label}`}
                     >
                       Disconnect
                     </Button>
@@ -309,18 +305,45 @@ export function ProfileCard({
         </div>
       </CardContent>
 
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+      <Dialog open={openDialog} onOpenChange={(open) => {
+        setOpenDialog(open);
+        if (!open) {
+          setUnlinkingProvider(null);
+          setUnlinkError("");
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Unlink{" "}
-              {unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""}?
+              {canDisconnect ? (
+                `Unlink ${unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""}?`
+              ) : (
+                `Cannot Unlink ${unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""}`
+              )}
             </DialogTitle>
             <DialogDescription>
-              You will not be able to log in using{" "}
-              {unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""} anymore. Make sure you have configured another login connection.
+              {canDisconnect ? (
+                `You will not be able to log in using ${
+                  unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""
+                } anymore. Make sure you have configured another login connection.`
+              ) : (
+                `Action Blocked: This connection is currently your only login method.`
+              )}
             </DialogDescription>
           </DialogHeader>
+
+          {!canDisconnect && (
+            <div className="p-3.5 bg-destructive/10 border border-destructive/20 rounded-lg text-xs text-destructive flex items-start gap-2.5 font-medium leading-relaxed my-2">
+              <span className="text-sm mt-0.5 shrink-0">⚠️</span>
+              <div>
+                <p className="font-semibold text-destructive/90">Action Blocked</p>
+                <p className="text-destructive/80 mt-0.5">
+                  Disconnecting this method would leave your account with no login methods, permanently locking you out. Please configure another connection (like Email & Password or another social account) before disconnecting this one.
+                </p>
+              </div>
+            </div>
+          )}
+
           {unlinkError && <p className="text-sm text-destructive">{unlinkError}</p>}
           <DialogFooter>
             <Button
@@ -332,16 +355,18 @@ export function ProfileCard({
                 setUnlinkError("");
               }}
             >
-              Cancel
+              {canDisconnect ? "Cancel" : "Close"}
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirm}
-              disabled={isUnlinking}
-            >
-              {isUnlinking && <Loader2 className="mr-2 size-4 animate-spin" />}
-              Unlink Connection
-            </Button>
+            {canDisconnect && (
+              <Button
+                variant="destructive"
+                onClick={handleConfirm}
+                disabled={isUnlinking}
+              >
+                {isUnlinking && <Loader2 className="mr-2 size-4 animate-spin" />}
+                Unlink Connection
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
