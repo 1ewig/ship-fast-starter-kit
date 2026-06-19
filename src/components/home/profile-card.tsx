@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardContent,
@@ -14,9 +16,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mail, Calendar, X, Loader2 } from "lucide-react";
+import { Mail, Calendar, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { signIn } from "@/lib/auth-client";
 
 interface AccountInfo {
   id: string;
@@ -35,6 +36,8 @@ interface ProfileCardProps {
   };
   accounts: AccountInfo[];
   onUnlink: (providerId: string) => Promise<void>;
+  onLinkSocial: (provider: "github" | "google") => Promise<void>;
+  isLinking: string | null;
 }
 
 function GithubIcon({ className }: { className?: string }) {
@@ -90,12 +93,17 @@ function getInitials(name?: string | null) {
     .slice(0, 2);
 }
 
-export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
+export function ProfileCard({
+  session,
+  accounts,
+  onUnlink,
+  onLinkSocial,
+  isLinking,
+}: ProfileCardProps) {
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-  const [isLinking, setIsLinking] = useState<string | null>(null);
 
   const handleConfirm = async () => {
     if (!unlinkingProvider) return;
@@ -109,20 +117,6 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
       setUnlinkError(err.message || "Failed to unlink connection. Please try again.");
     } finally {
       setIsUnlinking(false);
-    }
-  };
-
-  const handleLinkSocial = async (provider: "github" | "google") => {
-    setIsLinking(provider);
-    try {
-      await signIn.social({
-        provider,
-        callbackURL: "/",
-      });
-    } catch (err: any) {
-      console.error(`Failed to link ${provider} account:`, err);
-    } finally {
-      setIsLinking(null);
     }
   };
 
@@ -212,7 +206,7 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
                       variant="outline"
                       size="sm"
                       disabled={isLinking !== null}
-                      onClick={() => handleLinkSocial(p)}
+                      onClick={() => onLinkSocial(p)}
                     >
                       {isLinking === p ? (
                         <Loader2 className="size-3.5 animate-spin" />
@@ -284,3 +278,4 @@ export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
     </Card>
   );
 }
+
