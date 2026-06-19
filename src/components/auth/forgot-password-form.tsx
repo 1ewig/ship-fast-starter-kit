@@ -17,8 +17,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { requestPasswordReset } from "@/lib/auth-client";
+import { useForgotPasswordForm } from "@/hooks/useForgotPasswordForm";
 
 import { Loader2, MailCheck } from "lucide-react";
 
@@ -26,42 +25,9 @@ export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const form = useForgotPasswordForm();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (!email.trim()) {
-      setError("Email is required");
-      return;
-    }
-
-    setIsLoading(true);
-
-    const { error: reqError } = await requestPasswordReset({
-      email: email.trim().toLowerCase(),
-      redirectTo: "/reset-password",
-    });
-
-    setIsLoading(false);
-
-    if (reqError) {
-      if (reqError.status === 429) {
-        setError("Too many requests. Please wait a moment before trying again.");
-      } else {
-        setError(reqError.message || "Something went wrong. Please try again.");
-      }
-      return;
-    }
-
-    setSuccess(true);
-  };
-
-  if (success) {
+  if (form.success) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <Card>
@@ -74,8 +40,10 @@ export function ForgotPasswordForm({
                 <CardTitle className="text-xl">Check your email</CardTitle>
                 <CardDescription>
                   If an account exists with{" "}
-                  <span className="font-medium text-foreground">{email}</span>,
-                  you&apos;ll receive a reset link shortly.
+                  <span className="font-medium text-foreground">
+                    {form.email}
+                  </span>
+                  , you&apos;ll receive a reset link shortly.
                 </CardDescription>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -86,10 +54,7 @@ export function ForgotPasswordForm({
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => {
-                    setSuccess(false);
-                    setEmail("");
-                  }}
+                  onClick={form.handleTryAnother}
                 >
                   Try another email
                 </Button>
@@ -118,10 +83,13 @@ export function ForgotPasswordForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={form.handleSubmit}>
             <FieldGroup>
-              {error && (
-                <FieldError errors={[{ message: error }]} className="text-center" />
+              {form.error && (
+                <FieldError
+                  errors={[{ message: form.error }]}
+                  className="text-center"
+                />
               )}
 
               <Field>
@@ -131,12 +99,11 @@ export function ForgotPasswordForm({
                     id="email"
                     type="email"
                     placeholder="m@example.com"
-                    value={email}
+                    value={form.email}
                     onChange={(e) => {
-                      setEmail(e.target.value);
-                      setError("");
+                      form.setEmail(e.target.value);
                     }}
-                    disabled={isLoading}
+                    disabled={form.isLoading}
                     autoFocus
                     required
                   />
@@ -144,8 +111,12 @@ export function ForgotPasswordForm({
               </Field>
 
               <Field>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={form.isLoading}
+                >
+                  {form.isLoading ? (
                     <>
                       <Loader2 className="animate-spin" />
                       Sending reset link...
