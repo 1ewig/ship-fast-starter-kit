@@ -287,11 +287,7 @@ export function ProfileCard({
             })}
           </div>
 
-          {!isLoadingAccounts && !canDisconnect && hasSocialConnected && (
-            <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-border/30">
-              💡 <strong>Note:</strong> You must have at least two login methods connected (e.g., email/password or another social account) before you can disconnect any of them.
-            </p>
-          )}
+
         </div>
 
         <div className="flex items-center gap-3 text-sm text-muted-foreground pt-1">
