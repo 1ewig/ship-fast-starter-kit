@@ -14,31 +14,19 @@ import {
   FieldContent,
   FieldError,
   FieldGroup,
-  FieldLabel,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { resetPassword } from "@/lib/auth-client";
+import { useResetPasswordForm } from "@/hooks/useResetPasswordForm";
+import { PasswordField } from "./PasswordField";
 
-import { Loader2, Eye, EyeOff, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export function ResetPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const form = useResetPasswordForm();
 
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [generalError, setGeneralError] = useState("");
-  const [success, setSuccess] = useState(false);
-
-  if (!token) {
+  if (!form.token) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <Card>
@@ -66,63 +54,7 @@ export function ResetPasswordForm({
     );
   }
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!newPassword) {
-      newErrors.newPassword = "Password is required";
-    } else if (newPassword.length < 8) {
-      newErrors.newPassword = "Password must be at least 8 characters";
-    }
-
-    if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setGeneralError("");
-    setErrors({});
-
-    if (!validate()) return;
-
-    setIsLoading(true);
-
-    const { error } = await resetPassword({
-      newPassword,
-      token,
-    });
-
-    setIsLoading(false);
-
-    if (error) {
-      const msg = error.message?.toLowerCase() || "";
-
-      if (error.status === 429) {
-        setGeneralError("Too many requests. Please wait a moment before trying again.");
-      } else if (msg.includes("invalid") || msg.includes("expired") || msg.includes("token")) {
-        setGeneralError(
-          "This reset link is invalid or has expired."
-        );
-      } else if (msg.includes("short") || msg.includes("length")) {
-        setErrors((p) => ({
-          ...p,
-          newPassword: error.message || "Password is too short",
-        }));
-      } else {
-        setGeneralError(error.message || "Something went wrong. Please try again.");
-      }
-      return;
-    }
-
-    setSuccess(true);
-  };
-
-  if (success) {
+  if (form.success) {
     return (
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <Card>
@@ -132,7 +64,9 @@ export function ResetPasswordForm({
                 <CheckCircle2 className="size-6 text-green-600" />
               </div>
               <div className="space-y-1">
-                <CardTitle className="text-xl">Password reset successful</CardTitle>
+                <CardTitle className="text-xl">
+                  Password reset successful
+                </CardTitle>
                 <CardDescription>
                   Your password has been updated. You can now sign in with your
                   new password.
@@ -156,79 +90,56 @@ export function ResetPasswordForm({
           <CardDescription>Enter your new password below.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={form.handleSubmit} noValidate>
             <FieldGroup>
-              {generalError && (
+              {form.generalError && (
                 <FieldError
-                  errors={[{ message: generalError }]}
+                  errors={[{ message: form.generalError }]}
                   className="text-center"
                 />
               )}
 
-              <Field>
-                <FieldLabel htmlFor="newPassword">New Password</FieldLabel>
-                <FieldContent>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="At least 8 characters"
-                      value={newPassword}
-                      onChange={(e) => {
-                        setNewPassword(e.target.value);
-                        setErrors((p) => ({ ...p, newPassword: "" }));
-                      }}
-                      disabled={isLoading}
-                      autoFocus
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                  {errors.newPassword && (
-                    <FieldError errors={[{ message: errors.newPassword }]} />
-                  )}
-                </FieldContent>
-              </Field>
+              <PasswordField
+                id="newPassword"
+                label="New Password"
+                value={form.newPassword}
+                onChange={(v) => {
+                  form.setNewPassword(v);
+                  form.setErrors((p) => ({ ...p, newPassword: "" }));
+                }}
+                error={form.errors.newPassword}
+                disabled={form.isLoading}
+                showPassword={form.showPassword}
+                onToggleShow={() =>
+                  form.setShowPassword(!form.showPassword)
+                }
+                autoFocus
+              />
 
-              <Field>
-                <FieldLabel htmlFor="confirmPassword">
-                  Confirm Password
-                </FieldLabel>
-                <FieldContent>
-                  <Input
-                    id="confirmPassword"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Repeat your password"
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setErrors((p) => ({ ...p, confirmPassword: "" }));
-                    }}
-                    disabled={isLoading}
-                    required
-                  />
-                  {errors.confirmPassword && (
-                    <FieldError
-                      errors={[{ message: errors.confirmPassword }]}
-                    />
-                  )}
-                </FieldContent>
-              </Field>
+              <PasswordField
+                id="confirmPassword"
+                label="Confirm Password"
+                value={form.confirmPassword}
+                onChange={(v) => {
+                  form.setConfirmPassword(v);
+                  form.setErrors((p) => ({ ...p, confirmPassword: "" }));
+                }}
+                error={form.errors.confirmPassword}
+                disabled={form.isLoading}
+                showPassword={form.showPassword}
+                onToggleShow={() =>
+                  form.setShowPassword(!form.showPassword)
+                }
+                placeholder="Repeat your password"
+              />
 
               <Field>
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={form.isLoading}
                 >
-                  {isLoading ? (
+                  {form.isLoading ? (
                     <>
                       <Loader2 className="animate-spin" />
                       Resetting password...
