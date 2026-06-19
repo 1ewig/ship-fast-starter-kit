@@ -126,6 +126,7 @@ export function ProfileCard({
   };
 
   const canDisconnect = accounts.length > 1;
+  const hasSocialConnected = accounts.some((a) => a.providerId === "github" || a.providerId === "google");
   const socialProvidersList = ["github", "google"] as const;
 
   return (
@@ -286,7 +287,7 @@ export function ProfileCard({
             })}
           </div>
 
-          {!isLoadingAccounts && !canDisconnect && (
+          {!isLoadingAccounts && !canDisconnect && hasSocialConnected && (
             <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-border/30">
               💡 <strong>Note:</strong> You must have at least two login methods connected (e.g., email/password or another social account) before you can disconnect any of them.
             </p>
