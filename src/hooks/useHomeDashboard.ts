@@ -30,9 +30,8 @@ export function useHomeDashboard() {
   }, [session, fetchAccounts]);
 
   const handleUnlink = async (providerId: string) => {
-    const hasCredentials = accounts.some((a) => a.providerId === "credential");
-    if (!hasCredentials) {
-      throw new Error("You must have a password login configured to disconnect social accounts.");
+    if (accounts.length <= 1) {
+      throw new Error("You must have at least one other login method connected to disconnect this account.");
     }
     const { error } = await unlinkAccount({ providerId });
     if (error) {

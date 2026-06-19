@@ -120,7 +120,7 @@ export function ProfileCard({
     }
   };
 
-  const hasCredentials = accounts.some((a) => a.providerId === "credential");
+  const canDisconnect = accounts.length > 1;
   const socialProvidersList = ["github", "google"] as const;
 
   return (
@@ -188,14 +188,14 @@ export function ProfileCard({
                     <Button
                       variant="destructive"
                       size="sm"
-                      disabled={!hasCredentials || isUnlinking}
+                      disabled={!canDisconnect || isUnlinking}
                       onClick={() => {
                         setUnlinkingProvider(p);
                         setOpenDialog(true);
                       }}
                       title={
-                        !hasCredentials
-                          ? "Email & password login must be configured to disconnect social accounts."
+                        !canDisconnect
+                          ? "You must have at least one other login method connected to disconnect this account."
                           : `Disconnect ${config.label}`
                       }
                     >
@@ -220,9 +220,9 @@ export function ProfileCard({
             })}
           </div>
 
-          {!hasCredentials && (
+          {!canDisconnect && (
             <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-border/30">
-              💡 <strong>Note:</strong> You must have a registered email and password login (Credentials) configured before you can disconnect any social accounts.
+              💡 <strong>Note:</strong> You must have at least two login methods connected (e.g., email/password or another social account) before you can disconnect any of them.
             </p>
           )}
         </div>
