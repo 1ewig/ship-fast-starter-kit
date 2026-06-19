@@ -35,6 +35,7 @@ interface ProfileCardProps {
     };
   };
   accounts: AccountInfo[];
+  isLoadingAccounts?: boolean;
   onUnlink: (providerId: string) => Promise<void>;
   onLinkSocial: (provider: "github" | "google") => Promise<void>;
   isLinking: string | null;
@@ -96,6 +97,7 @@ function getInitials(name?: string | null) {
 export function ProfileCard({
   session,
   accounts,
+  isLoadingAccounts = false,
   onUnlink,
   onLinkSocial,
   isLinking,
@@ -178,13 +180,19 @@ export function ProfileCard({
                     </div>
                     <div>
                       <p className="text-sm font-medium">{config.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {isLinked ? "Connected" : "Not connected"}
-                      </p>
+                      {isLoadingAccounts ? (
+                        <div className="h-3 w-16 bg-muted animate-pulse rounded mt-1.5" />
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          {isLinked ? "Connected" : "Not connected"}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {isLinked ? (
+                  {isLoadingAccounts ? (
+                    <div className="h-8 w-20 bg-muted/70 animate-pulse rounded" />
+                  ) : isLinked ? (
                     <Button
                       variant="destructive"
                       size="sm"
@@ -220,7 +228,7 @@ export function ProfileCard({
             })}
           </div>
 
-          {!canDisconnect && (
+          {!isLoadingAccounts && !canDisconnect && (
             <p className="text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded border border-border/30">
               💡 <strong>Note:</strong> You must have at least two login methods connected (e.g., email/password or another social account) before you can disconnect any of them.
             </p>

@@ -21,7 +21,7 @@ interface HomeState {
 
 export const useHomeStore = create<HomeState>((set) => ({
   accounts: [],
-  isLoadingAccounts: false,
+  isLoadingAccounts: true,
   setAccounts: (accounts) => set({ accounts }),
   setLoadingAccounts: (loading) => set({ isLoadingAccounts: loading }),
   fetchAccounts: async () => {

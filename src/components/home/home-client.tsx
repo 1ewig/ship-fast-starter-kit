@@ -10,6 +10,7 @@ export function HomeClient() {
     session,
     isSessionPending,
     accounts,
+    isLoadingAccounts,
     isLinking,
     isSigningOut,
     handleUnlink,
@@ -43,6 +44,7 @@ export function HomeClient() {
           <ProfileCard
             session={session}
             accounts={accounts}
+            isLoadingAccounts={isLoadingAccounts}
             onUnlink={handleUnlink}
             onLinkSocial={handleLinkSocial}
             isLinking={isLinking}
