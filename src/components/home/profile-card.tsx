@@ -16,8 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Mail, Calendar, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
+import { Mail, Calendar, Loader2 } from "lucide-react";
 
 interface AccountInfo {
   id: string;
@@ -102,6 +104,7 @@ export function ProfileCard({
   onLinkSocial,
   isLinking,
 }: ProfileCardProps) {
+  const nameForm = useUpdateNameForm(session.user.name || "");
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState("");
@@ -148,6 +151,65 @@ export function ProfileCard({
             <p className="font-medium">{session.user.name || "No name set"}</p>
             <p className="text-sm text-muted-foreground">{session.user.email}</p>
           </div>
+        </div>
+ 
+        {/* Name Update Section */}
+        <div className="pt-4 border-t border-border/40 space-y-3">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 tracking-wider">
+              DISPLAY NAME
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Change your display name visible across the application.
+            </p>
+          </div>
+          
+          <form onSubmit={nameForm.handleSubmit} className="space-y-3">
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Input
+                  id="display-name"
+                  type="text"
+                  placeholder="Enter display name"
+                  value={nameForm.name}
+                  onChange={(e) => {
+                    nameForm.setName(e.target.value);
+                    nameForm.setError("");
+                  }}
+                  disabled={nameForm.isUpdating}
+                  className="h-9"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={!nameForm.isChanged || nameForm.isUpdating}
+                className="h-9 px-4 shrink-0 transition-all cursor-pointer"
+              >
+                {nameForm.isUpdating ? (
+                  <>
+                    <Loader2 className="size-3.5 mr-1.5 animate-spin" />
+                    Saving
+                  </>
+                ) : (
+                  "Save"
+                )}
+              </Button>
+            </div>
+
+            {nameForm.error && (
+              <p className="text-xs text-destructive font-medium flex items-center gap-1">
+                <span>⚠️</span> {nameForm.error}
+              </p>
+            )}
+
+            {nameForm.success && (
+              <p className="text-xs text-green-600 font-medium flex items-center gap-1 animate-fade-in">
+                <span>✓</span> Display name updated successfully!
+              </p>
+            )}
+          </form>
         </div>
 
         {/* Socials Section */}
