@@ -24,10 +24,10 @@ export function useHomeDashboard() {
 
   // Fetch linked accounts from the store on session load
   useEffect(() => {
-    if (session) {
+    if (session && accounts.length === 0) {
       fetchAccounts();
     }
-  }, [session, fetchAccounts]);
+  }, [session, fetchAccounts, accounts.length]);
 
   const handleUnlink = async (providerId: string) => {
     if (accounts.length <= 1) {

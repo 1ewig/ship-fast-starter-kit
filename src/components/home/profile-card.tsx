@@ -127,6 +127,7 @@ export function ProfileCard({
 
   const canDisconnect = accounts.length > 1;
   const hasSocialConnected = accounts.some((a) => a.providerId === "github" || a.providerId === "google");
+  const showSkeleton = isLoadingAccounts && accounts.length === 0;
   const socialProvidersList = ["github", "google"] as const;
 
   return (
@@ -243,7 +244,7 @@ export function ProfileCard({
                     </div>
                     <div>
                       <p className="text-sm font-medium">{config.label}</p>
-                      {isLoadingAccounts ? (
+                      {showSkeleton ? (
                         <div className="h-3 w-16 bg-muted animate-pulse rounded mt-1.5" />
                       ) : (
                         <p className="text-xs text-muted-foreground">
@@ -253,7 +254,7 @@ export function ProfileCard({
                     </div>
                   </div>
 
-                  {isLoadingAccounts ? (
+                  {showSkeleton ? (
                     <div className="h-8 w-20 bg-muted/70 animate-pulse rounded" />
                   ) : isLinked ? (
                     <Button
