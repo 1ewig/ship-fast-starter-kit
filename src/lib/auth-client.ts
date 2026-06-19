@@ -23,4 +23,5 @@ export const {
   unlinkAccount,
   requestPasswordReset,
   resetPassword,
+  linkSocial,
 } = authClient;

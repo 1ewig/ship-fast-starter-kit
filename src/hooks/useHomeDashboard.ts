@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession, signIn, signOut, unlinkAccount } from "@/lib/auth-client";
+import { useSession, signIn, signOut, unlinkAccount, linkSocial } from "@/lib/auth-client";
 import { useHomeStore } from "@/stores/useHomeStore";
 import { useRouter } from "next/navigation";
 
@@ -43,10 +43,16 @@ export function useHomeDashboard() {
   const handleLinkSocial = async (provider: "github" | "google") => {
     setIsLinking(provider);
     try {
-      await signIn.social({
+      const { data, error } = await linkSocial({
         provider,
         callbackURL: "/",
       });
+      if (error) {
+        throw new Error(error.message || "Linking failed");
+      }
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (err: any) {
       console.error(`Failed to link ${provider} account:`, err);
     } finally {
