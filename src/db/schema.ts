@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgSchema, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import { pgSchema, text, timestamp, boolean, index, integer, bigint } from "drizzle-orm/pg-core";
 
 const authSchema = pgSchema("better_auth");
 
@@ -9,6 +9,11 @@ export const user = authSchema.table("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  role: text("role").notNull().default("user"), // user | admin
+  banned: boolean("banned").notNull().default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires"),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -31,6 +36,7 @@ export const session = authSchema.table(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    impersonatedBy: text("impersonated_by"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );
@@ -74,6 +80,22 @@ export const verification = authSchema.table(
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
+
+export const twoFactor = authSchema.table("two_factor", {
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
+export const rateLimit = authSchema.table("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key"),
+  count: integer("count"),
+  lastRequest: bigint("last_request", { mode: "number" }),
+});
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),

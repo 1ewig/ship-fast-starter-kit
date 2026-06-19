@@ -18,8 +18,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { signIn } from "@/lib/auth-client";
+import { useState, useEffect } from "react";
+import { signIn, authClient } from "@/lib/auth-client";
 
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
@@ -34,11 +34,45 @@ export function SignInForm({
   const [socialLoading, setSocialLoading] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isEmailUnverified, setIsEmailUnverified] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState("");
+
+  // Load cooldown state on mount
+  useEffect(() => {
+    const storedCooldown = localStorage.getItem("verification_resend_cooldown");
+    if (storedCooldown) {
+      const timeRemaining = Math.ceil((parseInt(storedCooldown, 10) - Date.now()) / 1000);
+      if (timeRemaining > 0) {
+        setResendCooldown(timeRemaining);
+      } else {
+        localStorage.removeItem("verification_resend_cooldown");
+      }
+    }
+  }, []);
+
+  // Cooldown countdown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          localStorage.removeItem("verification_resend_cooldown");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
     setGeneralError("");
+    setResendSuccess("");
+    setIsEmailUnverified(false);
     setIsLoading(true);
 
     const { error } = await signIn.email({ email, password });
@@ -49,6 +83,13 @@ export function SignInForm({
           ? "Invalid email or password"
           : error.message || "Something went wrong. Please try again.";
       setGeneralError(message);
+
+      // Detect unverified email errors to prompt user with a resend button
+      const isUnverified = error.message?.toLowerCase().includes("verify") || error.message?.toLowerCase().includes("verification");
+      if (isUnverified) {
+        setIsEmailUnverified(true);
+      }
+
       setIsLoading(false);
       return;
     }
@@ -56,9 +97,40 @@ export function SignInForm({
     window.location.href = "/";
   };
 
+  const handleResendVerification = async () => {
+    if (!email) {
+      setGeneralError("Please enter your email address first.");
+      return;
+    }
+    setIsResending(true);
+    setResendSuccess("");
+    setGeneralError("");
+
+    const { error } = await authClient.sendVerificationEmail({
+      email: email.trim().toLowerCase(),
+      callbackURL: "/",
+    });
+
+    setIsResending(false);
+
+    if (error) {
+      const message = error.status === 429
+        ? "Too many requests. Please wait a bit before trying again."
+        : error.message || "Failed to resend verification email.";
+      setGeneralError(message);
+    } else {
+      setResendSuccess("Verification email sent! Check your inbox.");
+      const targetTime = Date.now() + 60000;
+      localStorage.setItem("verification_resend_cooldown", targetTime.toString());
+      setResendCooldown(60);
+    }
+  };
+
   const handleSocialLogin = async (provider: "github") => {
     setSocialLoading(provider);
     setGeneralError("");
+    setResendSuccess("");
+    setIsEmailUnverified(false);
     await signIn.social({ provider });
     setSocialLoading("");
   };
@@ -80,6 +152,32 @@ export function SignInForm({
                   errors={[{ message: generalError }]}
                   className="text-center"
                 />
+              )}
+
+              {resendSuccess && (
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-xs text-green-600 text-center font-medium">
+                  {resendSuccess}
+                </div>
+              )}
+
+              {isEmailUnverified && (
+                <div className="p-3 bg-muted rounded-lg text-xs text-muted-foreground flex flex-col items-center gap-1.5 text-center">
+                  <span>Your email address is not verified yet.</span>
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resendCooldown > 0 || isResending}
+                    className="text-primary font-semibold underline disabled:no-underline disabled:opacity-50 hover:text-primary/95 transition-all cursor-pointer"
+                  >
+                    {isResending ? (
+                      "Sending..."
+                    ) : resendCooldown > 0 ? (
+                      `Resend in ${resendCooldown}s`
+                    ) : (
+                      "Resend verification email"
+                    )}
+                  </button>
+                </div>
               )}
 
               <Field>

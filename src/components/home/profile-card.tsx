@@ -5,7 +5,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Mail, Calendar } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Mail, Calendar, X, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { signIn } from "@/lib/auth-client";
 
 interface AccountInfo {
   id: string;
@@ -23,6 +34,7 @@ interface ProfileCardProps {
     };
   };
   accounts: AccountInfo[];
+  onUnlink: (providerId: string) => Promise<void>;
 }
 
 function GithubIcon({ className }: { className?: string }) {
@@ -36,7 +48,10 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
-const providerConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+const providerConfig: Record<
+  string,
+  { label: string; icon: React.ComponentType<{ className?: string }> }
+> = {
   github: { label: "GitHub", icon: GithubIcon },
   credential: { label: "Email & Password", icon: Mail },
 };
@@ -51,10 +66,47 @@ function getInitials(name?: string | null) {
     .slice(0, 2);
 }
 
-export function ProfileCard({ session, accounts }: ProfileCardProps) {
+export function ProfileCard({ session, accounts, onUnlink }: ProfileCardProps) {
+  const [isUnlinking, setIsUnlinking] = useState(false);
+  const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
+  const [unlinkError, setUnlinkError] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [isLinking, setIsLinking] = useState<string | null>(null);
+
   const sortedAccounts = accounts
     .filter((a) => providerConfig[a.providerId])
     .sort((a, b) => (a.providerId === "credential" ? 1 : -1));
+
+  const hasGithub = accounts.some((a) => a.providerId === "github");
+
+  const handleConfirm = async () => {
+    if (!unlinkingProvider) return;
+    setIsUnlinking(true);
+    setUnlinkError("");
+    try {
+      await onUnlink(unlinkingProvider);
+      setOpenDialog(false);
+      setUnlinkingProvider(null);
+    } catch (err: any) {
+      setUnlinkError(err.message || "Failed to unlink connection. Please try again.");
+    } finally {
+      setIsUnlinking(false);
+    }
+  };
+
+  const handleLinkSocial = async (provider: "github") => {
+    setIsLinking(provider);
+    try {
+      await signIn.social({
+        provider,
+        callbackURL: "/",
+      });
+    } catch (err: any) {
+      console.error(`Failed to link ${provider} account:`, err);
+    } finally {
+      setIsLinking(null);
+    }
+  };
 
   return (
     <Card>
@@ -77,15 +129,13 @@ export function ProfileCard({ session, accounts }: ProfileCardProps) {
           )}
           <div>
             <p className="font-medium">{session.user.name || "No name set"}</p>
-            <p className="text-sm text-muted-foreground">
-              {session.user.email}
-            </p>
+            <p className="text-sm text-muted-foreground">{session.user.email}</p>
           </div>
         </div>
 
         {sortedAccounts.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">
+            <p className="text-xs font-medium text-slate-500 tracking-wider">
               LINKED ACCOUNTS
             </p>
             <div className="flex flex-wrap gap-2">
@@ -93,13 +143,30 @@ export function ProfileCard({ session, accounts }: ProfileCardProps) {
                 const config = providerConfig[account.providerId];
                 if (!config) return null;
                 const Icon = config.icon;
+                const isOnlyOne = sortedAccounts.length === 1;
                 return (
                   <span
                     key={account.id}
-                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
+                    className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1 text-xs font-medium text-foreground transition-all"
                   >
-                    <Icon className="size-3.5" />
+                    <Icon className="size-3.5 text-muted-foreground" />
                     {config.label}
+                    <button
+                      type="button"
+                      disabled={isOnlyOne}
+                      title={
+                        isOnlyOne
+                          ? "Keep at least one sign-in connection"
+                          : `Disconnect ${config.label}`
+                      }
+                      className="-mr-0.5 ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted disabled:pointer-events-none disabled:opacity-30 transition-colors"
+                      onClick={() => {
+                        setUnlinkingProvider(account.providerId);
+                        setOpenDialog(true);
+                      }}
+                    >
+                      <X className="size-3" />
+                    </button>
                   </span>
                 );
               })}
@@ -107,7 +174,30 @@ export function ProfileCard({ session, accounts }: ProfileCardProps) {
           </div>
         )}
 
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+        {/* Action to connect new providers if missing */}
+        {!hasGithub && (
+          <div className="pt-2 border-t border-border/40">
+            <p className="text-xs font-medium text-slate-500 tracking-wider mb-2">
+              CONNECT NEW PROVIDER
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-xs h-9 hover:bg-accent"
+              onClick={() => handleLinkSocial("github")}
+              disabled={isLinking === "github"}
+            >
+              {isLinking === "github" ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <GithubIcon className="size-3.5 text-muted-foreground" />
+              )}
+              Link GitHub Account
+            </Button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 text-sm text-muted-foreground pt-1">
           <Calendar className="size-4 shrink-0" />
           <span>
             Joined{" "}
@@ -118,6 +208,43 @@ export function ProfileCard({ session, accounts }: ProfileCardProps) {
           </span>
         </div>
       </CardContent>
+
+      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Unlink{" "}
+              {unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""}?
+            </DialogTitle>
+            <DialogDescription>
+              You will not be able to log in using{" "}
+              {unlinkingProvider ? providerConfig[unlinkingProvider]?.label : ""} anymore. Make sure you have configured another login connection.
+            </DialogDescription>
+          </DialogHeader>
+          {unlinkError && <p className="text-sm text-destructive">{unlinkError}</p>}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={isUnlinking}
+              onClick={() => {
+                setOpenDialog(false);
+                setUnlinkingProvider(null);
+                setUnlinkError("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirm}
+              disabled={isUnlinking}
+            >
+              {isUnlinking && <Loader2 className="mr-2 size-4 animate-spin" />}
+              Unlink Connection
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

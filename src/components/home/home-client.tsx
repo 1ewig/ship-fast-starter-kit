@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession, listAccounts } from "@/lib/auth-client";
+import { useSession, listAccounts, unlinkAccount } from "@/lib/auth-client";
 import { DashboardHeader } from "@/components/home/dashboard-header";
 import { ProfileCard } from "@/components/home/profile-card";
 import { QuickActions } from "@/components/home/quick-actions";
@@ -22,6 +22,14 @@ export function HomeClient() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const router = useRouter();
 
+  const fetchAccounts = () => {
+    if (session) {
+      listAccounts().then(({ data }) => {
+        if (data) setAccounts(data as Account[]);
+      });
+    }
+  };
+
   useEffect(() => {
     if (!isPending && !session) {
       router.push("/sign-in");
@@ -29,12 +37,16 @@ export function HomeClient() {
   }, [isPending, session, router]);
 
   useEffect(() => {
-    if (session) {
-      listAccounts().then(({ data }) => {
-        if (data) setAccounts(data as Account[]);
-      });
-    }
+    fetchAccounts();
   }, [session]);
+
+  const handleUnlink = async (providerId: string) => {
+    const { error } = await unlinkAccount({ providerId });
+    if (error) {
+      throw new Error(error.message || "Unlinking failed");
+    }
+    fetchAccounts();
+  };
 
   if (isPending) {
     return (
@@ -59,7 +71,11 @@ export function HomeClient() {
               You are signed in and ready to go.
             </p>
           </div>
-          <ProfileCard session={session} accounts={accounts} />
+          <ProfileCard
+            session={session}
+            accounts={accounts}
+            onUnlink={handleUnlink}
+          />
           <QuickActions />
         </div>
       </main>

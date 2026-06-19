@@ -1,0 +1,1 @@
+ALTER TABLE "better_auth"."rate_limit" ALTER COLUMN "last_request" SET DATA TYPE bigint;
