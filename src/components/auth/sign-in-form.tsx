@@ -24,12 +24,14 @@ import { PasswordField } from "./PasswordField";
 import { VerificationEmailBanner } from "./VerificationEmailBanner";
 
 import { Loader2 } from "lucide-react";
+import type { SocialProvider } from "@/lib/auth-providers";
 
 export function SignInForm({
   className,
+  availableProviders,
   ...props
-}: React.ComponentProps<"div">) {
-  const form = useSignInForm();
+}: React.ComponentProps<"div"> & { availableProviders: SocialProvider[] }) {
+  const form = useSignInForm(availableProviders);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -139,6 +141,7 @@ export function SignInForm({
                   isLoading={form.isLoading}
                   socialLoading={form.socialLoading}
                   onSocialLogin={form.handleSocialLogin}
+                  providers={availableProviders}
                 />
 
                 <FieldDescription className="text-center">

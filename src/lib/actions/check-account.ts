@@ -47,9 +47,7 @@ export async function checkAccountExists(
     return { exists: true, status: "verified" };
   }
 
-  const oauthAccount = accounts.find(
-    (a) => a.providerId === "github" || a.providerId === "google"
-  );
+  const oauthAccount = accounts.find((a) => a.providerId !== "credential");
 
   return {
     exists: true,

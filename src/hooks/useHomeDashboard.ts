@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useSession, signIn, signOut, unlinkAccount, linkSocial } from "@/lib/auth-client";
 import { useHomeStore } from "@/stores/useHomeStore";
 import { useRouter } from "next/navigation";
+import type { SocialProvider } from "@/lib/auth-providers";
 
-export function useHomeDashboard() {
+export function useHomeDashboard(availableProviders: SocialProvider[]) {
   const { data: session, isPending: isSessionPending } = useSession();
   const accounts = useHomeStore((s) => s.accounts);
   const isLoadingAccounts = useHomeStore((s) => s.isLoadingAccounts);
@@ -40,7 +41,9 @@ export function useHomeDashboard() {
     await fetchAccounts();
   };
 
-  const handleLinkSocial = async (provider: "github" | "google") => {
+  const handleLinkSocial = async (provider: SocialProvider) => {
+    if (!availableProviders.includes(provider)) return;
+
     setIsLinking(provider);
     try {
       const { data, error } = await linkSocial({

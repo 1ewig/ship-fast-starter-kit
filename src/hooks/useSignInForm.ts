@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { signIn, authClient } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
+import type { SocialProvider } from "@/lib/auth-providers";
 
-export function useSignInForm() {
+export function useSignInForm(availableProviders: SocialProvider[]) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -127,7 +128,8 @@ export function useSignInForm() {
     }
   };
 
-  const handleSocialLogin = async (provider: "github" | "google") => {
+  const handleSocialLogin = async (provider: SocialProvider) => {
+    if (!availableProviders.includes(provider)) return;
     setSocialLoading(provider);
     setGeneralError("");
     setResendSuccess("");

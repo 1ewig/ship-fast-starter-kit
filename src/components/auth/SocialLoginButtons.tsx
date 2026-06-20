@@ -2,11 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import type { SocialProvider } from "@/lib/auth-providers";
 
 interface SocialLoginButtonsProps {
   isLoading: boolean;
   socialLoading: string;
-  onSocialLogin: (provider: "github" | "google") => void;
+  onSocialLogin: (provider: SocialProvider) => void;
+  providers: SocialProvider[];
 }
 
 function GithubIcon() {
@@ -43,16 +45,19 @@ function GoogleIcon() {
   );
 }
 
-const providers = [
-  { id: "github" as const, label: "GitHub", icon: GithubIcon },
-  { id: "google" as const, label: "Google", icon: GoogleIcon },
-];
+const providerIcons: Record<SocialProvider, React.ComponentType> = {
+  github: GithubIcon,
+  google: GoogleIcon,
+};
 
 export function SocialLoginButtons({
   isLoading,
   socialLoading,
   onSocialLogin,
+  providers,
 }: SocialLoginButtonsProps) {
+  if (providers.length === 0) return null;
+
   return (
     <>
       <div className="relative my-2">
@@ -67,23 +72,26 @@ export function SocialLoginButtons({
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {providers.map((provider) => (
-          <Button
-            key={provider.id}
-            variant="outline"
-            type="button"
-            className="w-full"
-            disabled={isLoading || socialLoading === provider.id}
-            onClick={() => onSocialLogin(provider.id)}
-          >
-            {socialLoading === provider.id ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <provider.icon />
-            )}
-            {provider.label}
-          </Button>
-        ))}
+        {providers.map((provider) => {
+          const Icon = providerIcons[provider];
+          return (
+            <Button
+              key={provider}
+              variant="outline"
+              type="button"
+              className="w-full"
+              disabled={isLoading || socialLoading === provider}
+              onClick={() => onSocialLogin(provider)}
+            >
+              {socialLoading === provider ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <Icon />
+              )}
+              {provider.charAt(0).toUpperCase() + provider.slice(1)}
+            </Button>
+          );
+        })}
       </div>
     </>
   );

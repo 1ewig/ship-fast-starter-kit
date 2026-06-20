@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { signIn, signUp, authClient } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
+import type { SocialProvider } from "@/lib/auth-providers";
 
 export type AccountStatus =
   | "verified"
@@ -11,7 +12,7 @@ export type AccountStatus =
   | "banned"
   | null;
 
-export function useSignUpForm() {
+export function useSignUpForm(availableProviders: SocialProvider[]) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -163,7 +164,8 @@ export function useSignUpForm() {
     }
   };
 
-  const handleSocialLogin = async (provider: "github" | "google") => {
+  const handleSocialLogin = async (provider: SocialProvider) => {
+    if (!availableProviders.includes(provider)) return;
     setSocialLoading(provider);
     setGeneralError("");
     setResendSuccess("");

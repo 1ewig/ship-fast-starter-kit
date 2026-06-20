@@ -24,12 +24,14 @@ import { PasswordField } from "./PasswordField";
 import { VerificationEmailBanner } from "./VerificationEmailBanner";
 
 import { Loader2, MailCheck } from "lucide-react";
+import type { SocialProvider } from "@/lib/auth-providers";
 
 export function SignUpForm({
   className,
+  availableProviders,
   ...props
-}: React.ComponentProps<"div">) {
-  const form = useSignUpForm();
+}: React.ComponentProps<"div"> & { availableProviders: SocialProvider[] }) {
+  const form = useSignUpForm(availableProviders);
 
   if (form.success) {
     return (
@@ -223,6 +225,7 @@ export function SignUpForm({
                   isLoading={form.isLoading}
                   socialLoading={form.socialLoading}
                   onSocialLogin={form.handleSocialLogin}
+                  providers={availableProviders}
                 />
 
                 <FieldDescription className="text-center">

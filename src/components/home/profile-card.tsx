@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Mail, Calendar, Loader2 } from "lucide-react";
+import type { SocialProvider } from "@/lib/auth-providers";
 
 interface AccountInfo {
   id: string;
@@ -51,6 +52,7 @@ interface ProfileCardProps {
     handleSubmit: (e: React.FormEvent) => Promise<void>;
     isChanged: boolean;
   };
+  availableProviders: SocialProvider[];
 }
 
 function GithubIcon({ className }: { className?: string }) {
@@ -114,6 +116,7 @@ export function ProfileCard({
   onLinkSocial,
   isLinking,
   nameForm,
+  availableProviders,
 }: ProfileCardProps) {
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
@@ -137,7 +140,7 @@ export function ProfileCard({
 
   const canDisconnect = accounts.length > 1;
   const showSkeleton = isLoadingAccounts && accounts.length === 0;
-  const socialProvidersList = ["github", "google"] as const;
+  const socialProvidersList = availableProviders;
 
   return (
     <Card>
