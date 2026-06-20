@@ -142,7 +142,7 @@ export const auth = betterAuth({
   },
 
   onAPIError: {
-    errorURL: "/auth/error",
+    errorURL: "/error",
   },
 
   // Security plugins
