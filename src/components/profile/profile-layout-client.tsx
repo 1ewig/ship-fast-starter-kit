@@ -2,7 +2,6 @@
 
 import type { SocialProvider } from "@/lib/auth-providers";
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
-import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
 import { DashboardHeader } from "@/components/home/dashboard-header";
 import { ProfileSidebar } from "@/components/profile/profile-sidebar";
 
@@ -27,8 +26,6 @@ export function ProfileLayoutClient({
     handleSignOut,
   } = useHomeDashboard(availableProviders);
 
-  const nameForm = useUpdateNameForm(session?.user?.name || "");
-
   if (isSessionPending) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -47,7 +44,7 @@ export function ProfileLayoutClient({
         title="Settings"
       />
       <div className="flex flex-1">
-        <ProfileSidebar user={session.user} />
+        <ProfileSidebar />
         <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
