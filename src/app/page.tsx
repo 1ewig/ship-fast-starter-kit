@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { HomeClient } from "@/components/home/home-client";
+import { DashboardClient } from "@/components/home/dashboard-client";
 import { getAvailableProviders } from "@/lib/auth-providers";
 
 export const metadata: Metadata = {
@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 export default function HomePage() {
   const availableProviders = getAvailableProviders();
 
-  return <HomeClient availableProviders={availableProviders} />;
+  return <DashboardClient availableProviders={availableProviders} />;
 }

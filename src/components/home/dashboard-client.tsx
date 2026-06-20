@@ -1,13 +1,11 @@
 "use client";
 
-import type { SocialProvider } from "@/lib/auth-providers";
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
-import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
 import { DashboardHeader } from "@/components/home/dashboard-header";
-import { ProfileCard } from "@/components/home/profile-card";
 import { QuickActions } from "@/components/home/quick-actions";
+import type { SocialProvider } from "@/lib/auth-providers";
 
-export function HomeClient({
+export function DashboardClient({
   availableProviders,
 }: {
   availableProviders: SocialProvider[];
@@ -15,16 +13,9 @@ export function HomeClient({
   const {
     session,
     isSessionPending,
-    accounts,
-    isLoadingAccounts,
-    isLinking,
     isSigningOut,
-    handleUnlink,
-    handleLinkSocial,
     handleSignOut,
   } = useHomeDashboard(availableProviders);
-
-  const nameForm = useUpdateNameForm(session?.user?.name || "");
 
   if (isSessionPending) {
     return (
@@ -49,16 +40,6 @@ export function HomeClient({
               You are signed in and ready to go.
             </p>
           </div>
-          <ProfileCard
-            session={session}
-            accounts={accounts}
-            isLoadingAccounts={isLoadingAccounts}
-            onUnlink={handleUnlink}
-            onLinkSocial={handleLinkSocial}
-            isLinking={isLinking}
-            nameForm={nameForm}
-            availableProviders={availableProviders}
-          />
           <QuickActions />
         </div>
       </main>
