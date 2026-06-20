@@ -89,9 +89,9 @@ Page (server)  →  Container (client)  →  Hook (logic)  →  Presentational (
 | Layer | File Pattern | Responsibility |
 |-------|-------------|---------------|
 | Page | `src/app/**/page.tsx` | Server component, resolves providers, renders container |
-| Container | `src/components/home/home-client.tsx` | Wires hooks to presentational components |
+| Container | `src/components/home/dashboard-client.tsx`, `src/components/profile/profile-layout-client.tsx` | Wires hooks to presentational components |
 | Hook | `src/hooks/use*.ts` | State management, API calls, validation |
-| Presentational | `src/components/auth/*.tsx` | Pure UI, receives props only |
+| Presentational | `src/components/auth/*.tsx`, `src/components/profile/*.tsx` | Pure UI, receives props only |
 
 ### File Structure
 
@@ -102,13 +102,20 @@ src/
 │   │   ├── sign-in/page.tsx
 │   │   ├── sign-up/page.tsx
 │   │   ├── forgot-password/page.tsx
-│   │   └── reset-password/page.tsx
-│   ├── auth/error/page.tsx
+│   │   ├── reset-password/page.tsx
+│   │   └── error/page.tsx
+│   ├── settings/
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── profile/page.tsx
+│   │   ├── security/page.tsx
+│   │   └── billing/page.tsx
 │   ├── layout.tsx
 │   └── page.tsx
 ├── components/
 │   ├── auth/           # Presentational auth components
 │   ├── home/           # Dashboard components
+│   ├── profile/        # Settings components
 │   └── ui/             # Shared UI (shadcn)
 ├── hooks/              # Business logic hooks
 ├── lib/
@@ -138,6 +145,19 @@ src/
 - **Multi-Session** — Up to 5 concurrent sessions per user
 - **Bearer Token** — API authentication for programmatic access
 - **Admin** — Role-based access control (user/admin roles)
+
+### Dashboard
+
+- Welcome message with user's name
+- Quick actions card linking to Profile, Security, and Billing settings
+
+### Settings
+
+- **Sidebar Navigation** — ShipFast branding, Profile/Security/Billing links, Sign Out button
+- **Viewport-Locked Sidebar** — Sidebar stays fixed, only main content scrolls
+- **Profile** — Avatar upload/delete, display name editing, social account management
+- **Security** — Password, email, 2FA (placeholder)
+- **Billing** — Payment, subscription (placeholder)
 
 ### Profile Management
 
@@ -244,11 +264,15 @@ Plus a database hook that blocks OAuth sign-ups from unverified social emails.
 | Route | Purpose |
 |-------|---------|
 | `/` | Dashboard (protected) |
+| `/settings` | Redirects to `/settings/profile` |
+| `/settings/profile` | Avatar, display name, social accounts |
+| `/settings/security` | Password, email, 2FA |
+| `/settings/billing` | Payment, subscription |
 | `/sign-in` | Sign in with email/password or OAuth |
 | `/sign-up` | Create account with email verification |
 | `/forgot-password` | Request password reset email |
 | `/reset-password` | Set new password (from email link) |
-| `/auth/error` | Auth error page with typed error map |
+| `/error` | Auth error page with typed error map |
 | `/api/auth/*` | Better Auth API endpoints |
 
 ## Scripts
