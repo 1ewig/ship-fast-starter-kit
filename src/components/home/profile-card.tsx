@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Mail, Calendar, Loader2, Camera } from "lucide-react";
+import { Mail, Calendar, Loader2, Camera, Trash2 } from "lucide-react";
 import type { SocialProvider } from "@/lib/auth-providers";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
 import { CropModal } from "@/components/ui/crop-modal";
@@ -136,6 +136,7 @@ export function ProfileCard({
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const avatar = useAvatarUpload();
 
   const handleConfirm = async () => {
@@ -194,6 +195,21 @@ export function ProfileCard({
             <p className="font-medium">{session.user.name || "No name set"}</p>
             <p className="text-sm text-muted-foreground">{session.user.email}</p>
           </div>
+          {session.user.image && (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={avatar.isUploading || avatar.isDeleting}
+              onClick={() => setDeleteConfirmOpen(true)}
+              className="ml-auto text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              {avatar.isDeleting ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-3.5" />
+              )}
+            </Button>
+          )}
         </div>
 
         {avatar.error && (
@@ -423,6 +439,39 @@ export function ProfileCard({
                 Unlink Connection
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteConfirmOpen} onOpenChange={(open) => {
+        setDeleteConfirmOpen(open);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove avatar?</DialogTitle>
+            <DialogDescription>
+              Your avatar will be removed and replaced with your initials.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={avatar.isDeleting}
+              onClick={() => setDeleteConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={avatar.isDeleting}
+              onClick={async () => {
+                await avatar.remove();
+                setDeleteConfirmOpen(false);
+              }}
+            >
+              {avatar.isDeleting && <Loader2 className="mr-2 size-4 animate-spin" />}
+              Remove
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

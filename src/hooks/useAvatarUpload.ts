@@ -1,17 +1,33 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { uploadAvatar } from "@/lib/actions/upload-avatar";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/auth-client";
+import { uploadAvatar, deleteAvatar } from "@/lib/actions/upload-avatar";
 
 export function useAvatarUpload() {
+  const router = useRouter();
+  const { refetch } = useSession();
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const lastObjectUrl = useRef<string | null>(null);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const acceptedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+  const refreshSession = useCallback(async () => {
+    try {
+      await refetch();
+      router.refresh();
+    } catch (e) {
+      console.warn("[Avatar] Session refresh failed:", e);
+      router.refresh();
+    }
+  }, [refetch, router]);
 
   const triggerFileInput = useCallback(() => {
     fileInputRef.current?.click();
@@ -64,10 +80,16 @@ export function useAvatarUpload() {
 
     try {
       const formData = new FormData();
-      const file = new File([blob], "avatar.webp", { type: "image/jpeg" });
+      const file = new File([blob], "avatar.webp", { type: "image/webp" });
       formData.append("avatar", file);
 
-      await uploadAvatar(formData);
+      const result = await uploadAvatar(formData);
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
       setSuccess(true);
 
       if (lastObjectUrl.current) {
@@ -76,20 +98,44 @@ export function useAvatarUpload() {
       }
       setImageSrc(null);
 
-      setTimeout(() => {
-        setSuccess(false);
-        window.location.reload();
-      }, 1500);
-    } catch (err: any) {
-      setError(err.message || "Failed to upload avatar. Please try again.");
+      await refreshSession();
+
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(false), 2000);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to upload avatar. Please try again.";
+      setError(message);
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [refreshSession]);
+
+  const remove = useCallback(async () => {
+    setIsDeleting(true);
+    setError("");
+    setSuccess(false);
+
+    try {
+      const result = await deleteAvatar();
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
+      await refreshSession();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to remove avatar.";
+      setError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [refreshSession]);
 
   return {
     imageSrc,
     isUploading,
+    isDeleting,
     error,
     success,
     fileInputRef,
@@ -97,5 +143,6 @@ export function useAvatarUpload() {
     handleFileChange,
     closeCropModal,
     handleCropComplete,
+    remove,
   };
 }
