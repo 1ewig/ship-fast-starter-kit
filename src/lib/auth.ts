@@ -91,20 +91,28 @@ export const auth = betterAuth({
     },
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? {
-          google: {
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            mapProfileToUser: (profile) => {
-              if (profile.email_verified !== true) {
-                throw new Error("Your Google account email must be verified to sign in.");
-              }
-              return {
-                email: profile.email,
-                name: profile.name,
-                image: profile.picture,
-                emailVerified: true,
-              };
-            },
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        mapProfileToUser: (profile) => {
+          if (profile.email_verified !== true) {
+            throw new Error("Your Google account email must be verified to sign in.");
+          }
+          return {
+            email: profile.email,
+            name: profile.name,
+            image: profile.picture,
+            emailVerified: true,
+          };
+        },
+      },
+    }
+  : {}),
+    ...(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
+      ? {
+          discord: {
+            clientId: process.env.DISCORD_CLIENT_ID,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET,
           },
         }
       : {}),

@@ -1,6 +1,7 @@
 const SOCIAL_PROVIDERS = {
   github: { clientId: "GITHUB_CLIENT_ID", clientSecret: "GITHUB_CLIENT_SECRET" },
   google: { clientId: "GOOGLE_CLIENT_ID", clientSecret: "GOOGLE_CLIENT_SECRET" },
+  discord: { clientId: "DISCORD_CLIENT_ID", clientSecret: "DISCORD_CLIENT_SECRET" },
 } as const;
 
 export type SocialProvider = keyof typeof SOCIAL_PROVIDERS;
