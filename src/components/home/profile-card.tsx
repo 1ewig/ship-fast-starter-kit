@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
 import { Mail, Calendar, Loader2 } from "lucide-react";
 
 interface AccountInfo {
@@ -41,6 +40,17 @@ interface ProfileCardProps {
   onUnlink: (providerId: string) => Promise<void>;
   onLinkSocial: (provider: "github" | "google") => Promise<void>;
   isLinking: string | null;
+  nameForm: {
+    name: string;
+    setName: (name: string) => void;
+    isUpdating: boolean;
+    error: string;
+    setError: (error: string) => void;
+    success: boolean;
+    setSuccess: (success: boolean) => void;
+    handleSubmit: (e: React.FormEvent) => Promise<void>;
+    isChanged: boolean;
+  };
 }
 
 function GithubIcon({ className }: { className?: string }) {
@@ -103,8 +113,8 @@ export function ProfileCard({
   onUnlink,
   onLinkSocial,
   isLinking,
+  nameForm,
 }: ProfileCardProps) {
-  const nameForm = useUpdateNameForm(session.user.name || "");
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState("");
@@ -126,7 +136,6 @@ export function ProfileCard({
   };
 
   const canDisconnect = accounts.length > 1;
-  const hasSocialConnected = accounts.some((a) => a.providerId === "github" || a.providerId === "google");
   const showSkeleton = isLoadingAccounts && accounts.length === 0;
   const socialProvidersList = ["github", "google"] as const;
 

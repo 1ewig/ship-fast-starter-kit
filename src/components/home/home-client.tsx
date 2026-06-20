@@ -1,6 +1,7 @@
 "use client";
 
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
+import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
 import { DashboardHeader } from "@/components/home/dashboard-header";
 import { ProfileCard } from "@/components/home/profile-card";
 import { QuickActions } from "@/components/home/quick-actions";
@@ -17,6 +18,8 @@ export function HomeClient() {
     handleLinkSocial,
     handleSignOut,
   } = useHomeDashboard();
+
+  const nameForm = useUpdateNameForm(session?.user?.name || "");
 
   if (isSessionPending) {
     return (
@@ -48,6 +51,7 @@ export function HomeClient() {
             onUnlink={handleUnlink}
             onLinkSocial={handleLinkSocial}
             isLinking={isLinking}
+            nameForm={nameForm}
           />
           <QuickActions />
         </div>
