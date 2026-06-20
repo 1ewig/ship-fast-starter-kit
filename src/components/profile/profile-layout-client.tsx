@@ -44,7 +44,7 @@ export function ProfileLayoutClient({
       <DashboardHeader
         onSignOut={handleSignOut}
         isSigningOut={isSigningOut}
-        title="Account Settings"
+        title="Settings"
       />
       <div className="flex flex-1">
         <ProfileSidebar user={session.user} />

@@ -14,9 +14,9 @@ interface ProfileSidebarProps {
 }
 
 const navItems = [
-  { href: "/profile/info", label: "Profile", icon: User },
-  { href: "/profile/security", label: "Security", icon: Shield },
-  { href: "/profile/billing", label: "Billing", icon: CreditCard },
+  { href: "/settings/profile", label: "Profile", icon: User },
+  { href: "/settings/security", label: "Security", icon: Shield },
+  { href: "/settings/billing", label: "Billing", icon: CreditCard },
 ];
 
 function getInitials(name?: string | null) {
