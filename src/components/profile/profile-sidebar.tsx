@@ -21,6 +21,9 @@ export function ProfileSidebar({ onSignOut, isSigningOut }: ProfileSidebarProps)
 
   return (
     <nav className="w-56 shrink-0 border-r p-4 flex flex-col h-full">
+      <Link href="/" className="text-lg font-bold px-3 mb-4">
+        ShipFast
+      </Link>
       <div className="space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
