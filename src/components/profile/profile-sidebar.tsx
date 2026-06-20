@@ -20,7 +20,7 @@ export function ProfileSidebar({ onSignOut, isSigningOut }: ProfileSidebarProps)
   const pathname = usePathname();
 
   return (
-    <nav className="w-56 shrink-0 border-r p-4 flex flex-col">
+    <nav className="w-56 shrink-0 border-r p-4 flex flex-col sticky top-0 h-screen">
       <div className="space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

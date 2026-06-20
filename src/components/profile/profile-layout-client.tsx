@@ -32,7 +32,7 @@ export function ProfileLayoutClient({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <ProfileSidebar onSignOut={handleSignOut} isSigningOut={isSigningOut} />
         <main className="flex-1 p-6 overflow-auto">
           {children}
