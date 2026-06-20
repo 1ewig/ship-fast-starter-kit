@@ -42,6 +42,12 @@ export function AvatarUpload({ user }: AvatarUploadProps) {
         <button
           type="button"
           onClick={avatar.triggerFileInput}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              avatar.triggerFileInput();
+            }
+          }}
           className="group relative size-16 shrink-0 cursor-pointer rounded-full border overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           disabled={avatar.isUploading}
         >
