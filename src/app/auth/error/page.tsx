@@ -6,6 +6,10 @@ import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Suspense } from "react";
 
 const ERROR_MAP: Record<string, { title: string; message: string }> = {
+  "email_doesn't_match": {
+    title: "Email Mismatch",
+    message: "The email address from your social account doesn't match your current account email. To connect this account, sign in with that social provider first, or use a different social account that uses the same email address as your account.",
+  },
   account_not_linked: {
     title: "Verification Required",
     message: "An account with this email address already exists. To connect your social account, please log in with your password first, then link it from your account profile settings.",

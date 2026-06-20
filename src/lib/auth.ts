@@ -133,11 +133,8 @@ export const auth = betterAuth({
     },
   },
 
-  // Page mappings
-  pages: {
-    signIn: "/sign-in",
-    signUp: "/sign-up",
-    error: "/auth/error",
+  onAPIError: {
+    errorURL: "/auth/error",
   },
 
   // Security plugins
