@@ -54,11 +54,12 @@ export async function uploadAvatar(formData: FormData) {
 
   const filePath = `${session.user.id}.webp`;
 
+  await supabase.storage.from(BUCKET_NAME).remove([filePath]).catch(() => {});
+
   const { error: uploadError } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(filePath, processedImage, {
       contentType: "image/webp",
-      upsert: true,
     });
 
   if (uploadError) {
