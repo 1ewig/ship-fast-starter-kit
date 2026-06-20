@@ -18,8 +18,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Mail, Calendar, Loader2 } from "lucide-react";
+import { Mail, Calendar, Loader2, Camera } from "lucide-react";
 import type { SocialProvider } from "@/lib/auth-providers";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { CropModal } from "@/components/ui/crop-modal";
 
 interface AccountInfo {
   id: string;
@@ -134,6 +136,7 @@ export function ProfileCard({
   const [unlinkingProvider, setUnlinkingProvider] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const avatar = useAvatarUpload();
 
   const handleConfirm = async () => {
     if (!unlinkingProvider) return;
@@ -162,22 +165,53 @@ export function ProfileCard({
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="flex items-center gap-4">
-          {session.user.image ? (
-            <img
-              src={session.user.image}
-              alt={session.user.name || "Avatar"}
-              className="size-14 rounded-full border object-cover"
-            />
-          ) : (
-            <div className="flex size-14 items-center justify-center rounded-full border bg-muted text-sm font-semibold">
-              {getInitials(session.user.name)}
+          <button
+            type="button"
+            onClick={avatar.triggerFileInput}
+            className="group relative size-14 shrink-0 cursor-pointer rounded-full border overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            disabled={avatar.isUploading}
+          >
+            {session.user.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user.name || "Avatar"}
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center bg-muted text-sm font-semibold">
+                {getInitials(session.user.name)}
+              </div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+              {avatar.isUploading ? (
+                <Loader2 className="size-5 text-white animate-spin" />
+              ) : (
+                <Camera className="size-5 text-white" />
+              )}
             </div>
-          )}
+          </button>
           <div>
             <p className="font-medium">{session.user.name || "No name set"}</p>
             <p className="text-sm text-muted-foreground">{session.user.email}</p>
           </div>
         </div>
+
+        {avatar.error && (
+          <p className="text-xs text-destructive font-medium">{avatar.error}</p>
+        )}
+        {avatar.success && (
+          <p className="text-xs text-green-600 font-medium">
+            Avatar updated successfully!
+          </p>
+        )}
+
+        <input
+          ref={avatar.fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="hidden"
+          onChange={avatar.handleFileChange}
+        />
  
         {/* Name Update Section */}
         <div className="pt-4 border-t border-border/40 space-y-3">
@@ -392,6 +426,15 @@ export function ProfileCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {avatar.imageSrc && (
+        <CropModal
+          open={!!avatar.imageSrc}
+          onClose={avatar.closeCropModal}
+          imageSrc={avatar.imageSrc}
+          onSave={avatar.handleCropComplete}
+        />
+      )}
     </Card>
   );
 }
