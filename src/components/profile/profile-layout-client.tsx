@@ -2,7 +2,6 @@
 
 import type { SocialProvider } from "@/lib/auth-providers";
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { ProfileSidebar } from "@/components/profile/profile-sidebar";
 
 interface ProfileLayoutClientProps {
@@ -17,12 +16,7 @@ export function ProfileLayoutClient({
   const {
     session,
     isSessionPending,
-    accounts,
-    isLoadingAccounts,
-    isLinking,
     isSigningOut,
-    handleUnlink,
-    handleLinkSocial,
     handleSignOut,
   } = useHomeDashboard(availableProviders);
 
@@ -38,13 +32,8 @@ export function ProfileLayoutClient({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader
-        onSignOut={handleSignOut}
-        isSigningOut={isSigningOut}
-        title="Settings"
-      />
       <div className="flex flex-1">
-        <ProfileSidebar />
+        <ProfileSidebar onSignOut={handleSignOut} isSigningOut={isSigningOut} />
         <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>

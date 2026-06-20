@@ -1,7 +1,6 @@
 "use client";
 
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
-import { DashboardHeader } from "@/components/home/dashboard-header";
 import { QuickActions } from "@/components/home/quick-actions";
 import type { SocialProvider } from "@/lib/auth-providers";
 
@@ -13,8 +12,6 @@ export function DashboardClient({
   const {
     session,
     isSessionPending,
-    isSigningOut,
-    handleSignOut,
   } = useHomeDashboard(availableProviders);
 
   if (isSessionPending) {
@@ -29,7 +26,6 @@ export function DashboardClient({
 
   return (
     <div className="flex min-h-screen flex-col">
-      <DashboardHeader onSignOut={handleSignOut} isSigningOut={isSigningOut} />
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-2xl space-y-6">
           <div>
