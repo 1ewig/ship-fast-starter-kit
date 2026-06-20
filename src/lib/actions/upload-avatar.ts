@@ -52,14 +52,25 @@ export async function uploadAvatar(formData: FormData) {
     });
   }
 
-  const filePath = `${session.user.id}.webp`;
+  // Attempt to delete the old avatar file from Supabase Storage if it exists
+  if (session.user.image) {
+    const oldFilename = extractFilenameFromUrl(session.user.image, BUCKET_NAME);
+    if (oldFilename) {
+      await supabase.storage.from(BUCKET_NAME).remove([oldFilename]).catch((err) => {
+        console.error("Failed to remove old avatar file from storage:", err);
+      });
+    }
+  }
 
-  await supabase.storage.from(BUCKET_NAME).remove([filePath]).catch(() => {});
+  // Generate a unique, cache-busting filename
+  const uniqueId = crypto.randomUUID();
+  const filePath = `${session.user.id}-${uniqueId}.webp`;
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(filePath, processedImage, {
       contentType: "image/webp",
+      cacheControl: "31536000, immutable",
     });
 
   if (uploadError) {
@@ -82,4 +93,19 @@ export async function uploadAvatar(formData: FormData) {
   }
 
   return { url: publicUrl };
+}
+
+function extractFilenameFromUrl(url: string, bucketName: string): string | null {
+  try {
+    const decodedUrl = decodeURIComponent(url);
+    const searchPattern = `/storage/v1/object/public/${bucketName}/`;
+    const index = decodedUrl.indexOf(searchPattern);
+    if (index !== -1) {
+      const filenameWithParams = decodedUrl.substring(index + searchPattern.length);
+      return filenameWithParams.split("?")[0];
+    }
+  } catch {
+    // Ignore parsing errors
+  }
+  return null;
 }
