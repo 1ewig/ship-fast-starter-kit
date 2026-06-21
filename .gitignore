@@ -27,3 +27,6 @@ next-env.d.ts
 # claude docs
 avatar-claude.md
 some-help-claude.txt
+
+# personal
+/me/
