@@ -2,7 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { requireAuth } from "@/lib/dal";
+import { requireAuth, invalidateSession } from "@/lib/dal";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import sharp from "sharp";
@@ -133,6 +133,7 @@ export async function uploadAvatar(
   }
 
   revalidatePath("/");
+  await invalidateSession();
 
   return { success: true, imageUrl: publicUrl };
 }
@@ -169,6 +170,7 @@ export async function deleteAvatar(): Promise<UploadAvatarResult> {
   }
 
   revalidatePath("/");
+  await invalidateSession();
 
   return { success: true, imageUrl: "" };
 }
