@@ -20,7 +20,7 @@ export function ProfileSidebar({ onSignOut, isSigningOut }: ProfileSidebarProps)
   const pathname = usePathname();
 
   return (
-    <nav className="w-56 shrink-0 border-r p-4 flex flex-col h-full">
+    <nav className="w-(--sidebar-width) shrink-0 border-r p-4 flex flex-col h-full">
       <Link href="/" className="text-lg font-bold px-3 mb-4 text-center block">
         ShipFast
       </Link>

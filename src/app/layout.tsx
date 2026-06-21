@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Geist } from "next/font/google";
+import { Plus_Jakarta_Sans, Herr_Von_Muellerhoff } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
+const herrVonMuellerhoff = Herr_Von_Muellerhoff({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-accent",
+});
 
 export const metadata: Metadata = {
   title: "SaaS Starter Kit",
@@ -16,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("h-full antialiased", "font-sans", geist.variable)}>
+    <html lang="en" className={cn("h-full antialiased", "font-sans", plusJakartaSans.variable, herrVonMuellerhoff.variable)}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
