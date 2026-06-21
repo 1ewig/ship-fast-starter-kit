@@ -236,8 +236,8 @@ export function OrderSummary({ items, subtotal, shipping, tax, total }: OrderSum
   if (items.length === 0) return <EmptyCart />;
 
   return (
-    <div className="bg-bg-secondary p-8 rounded-2xl border border-border-subtle">
-      <h2>Order Summary</h2>
+      <div className="bg-secondary text-secondary-foreground p-8 rounded-2xl border border-border">
+      <h2 className="text-lg font-semibold">Order Summary</h2>
       <ul>
         {items.map((item) => (
           <li key={item.id}>{item.name}</li>
