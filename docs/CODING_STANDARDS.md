@@ -263,3 +263,46 @@ npm run build
 ```
 
 The build compiles TypeScript and validates types. Address any errors before pushing.
+
+---
+
+## Design System & Theming
+
+### Single Source of Truth
+
+All styling tokens live in `src/app/globals.css` — 8 core colors, derived shadcn/ui variables, radius scale, layout tokens, and font definitions. This file is the sole authority for the app's visual identity. Change the 8 hex values → the entire app rebrands.
+
+When you need a color, spacing, radius, or shadow — use the Tailwind utility class that maps to the CSS variable. **Never hardcode raw values.**
+
+### ✅ Allowed — Theme tokens only
+
+```tsx
+<div className="bg-background text-foreground" />
+<button className="hover:bg-accent hover:text-accent-foreground" />
+<nav className="w-(--sidebar-width)" />
+<div className="rounded-lg shadow-card" />
+```
+
+### ❌ Forbidden — Hardcoded values
+
+```tsx
+<div className="bg-[#F7F4EE] text-[#0A1828]" />
+<button className="hover:bg-[#EBE3D8]" />
+<nav className="w-56" />
+<div className="rounded-[12px]" />
+```
+
+### Token Reference
+
+| Category | Token | Example Usage |
+|----------|-------|---------------|
+| Page bg | `bg-background` | Page base, sidebar |
+| Cards | `bg-card text-card-foreground` | Card, popover surfaces |
+| Buttons | `bg-primary text-primary-foreground` | Primary actions |
+| Secondary bg | `bg-secondary text-secondary-foreground` | Pill/tab backgrounds |
+| Muted text | `text-muted-foreground` | Secondary labels, placeholders |
+| Hover bg | `hover:bg-accent hover:text-accent-foreground` | Interactive rows |
+| Borders | `border-border` | Dividers, inputs |
+| Radius | `rounded-lg`, `rounded-md` | Card corners, buttons |
+| Shadows | `shadow-card`, `shadow-dropdown` | Elevation |
+| Layout | `w-(--sidebar-width)` | Sidebar width (14rem) |
