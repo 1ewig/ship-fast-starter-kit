@@ -62,14 +62,14 @@
      8 CORE COLORS — Change these to rebrand the entire app.
      (Fonts are set via next/font in layout.tsx)
      ══════════════════════════════════════════════════════════════ */
-  --color-primary:       #F15335;  /* Vibrant coral — buttons, CTAs, focus rings */
-  --color-secondary:     #0C1D33;  /* Deep navy — headers, dark surfaces, sidebar */
-  --color-background:    #F9F4EC;  /* Warm cream — page base */
-  --color-surface:       #FDFBF7;  /* Off-white — cards, popovers */
-  --color-muted-bg:      #ECE4D9;  /* Warm beige — pill/tab backgrounds */
-  --color-text-muted:    #7E7467;  /* Warm grey — secondary/subtle text */
-  --color-accent:        #D1A153;  /* Luxury gold — highlights, decorative rings */
-  --color-border:        #D9D0C3;  /* Subdued warm line — borders, dividers */
+  --color-primary:       #EE4B2E;  /* Pure coral — buttons, CTAs, focus rings */
+  --color-secondary:     #0A1828;  /* Deep navy — headers, dark surfaces, sidebar */
+  --color-background:    #F7F4EE;  /* Warm cream — page base */
+  --color-surface:       #FFFFFF;  /* Pure white — cards, popovers */
+  --color-muted-bg:      #EFE8DD;  /* Soft beige — pill/tab backgrounds */
+  --color-text-muted:    #8C8273;  /* Warm grey — secondary/subtle text */
+  --color-accent:        #EBE3D8;  /* Warm beige — hover backgrounds, subtle accents */
+  --color-border:        #E0D8CC;  /* Light line — borders, dividers */
 
   /* ══════════════════════════════════════════════════════════════
      DERIVED shadcn/ui VARIABLES — do not edit directly.
@@ -113,16 +113,18 @@
 
 .dark {
   /* ══════════════════════════════════════════════════════════════
-     Same 8 core colors, inverted for dark mode
+     8 CORE COLORS — Dark mode
+     Midnight palette with warm cream text. Coral and gold retain
+     their vibrance to pop against the deep background.
      ══════════════════════════════════════════════════════════════ */
-  --color-primary:       #F97A63;  /* Lighter coral for dark backgrounds */
-  --color-secondary:     #F9F4EC;  /* Cream becomes text color */
-  --color-background:    #0C1D33;  /* Navy becomes background */
-  --color-surface:       #142944;  /* Lighter navy for card surfaces */
-  --color-muted-bg:      #1A2D4A;  /* Slightly lighter navy for muted areas */
-  --color-text-muted:    #A69B8E;  /* Lighter warm grey for readability */
-  --color-accent:        #D1A153;  /* Gold stays the same */
-  --color-border:        rgba(255, 255, 255, 0.1);
+  --color-primary:       #F97A63;  /* Brighter coral — pops on dark bg, keeps brand energy */
+  --color-secondary:     #EDE4D8;  /* Warm cream — primary text, softer on eyes than pure white */
+  --color-background:    #0B1120;  /* Deep midnight blue — page base, avoids harsh #000 */
+  --color-surface:       #131B2A;  /* One step above bg — cards, popovers */
+  --color-muted-bg:      #1C2638;  /* Two steps above bg — pills, hover states */
+  --color-text-muted:    #8E8375;  /* Warm muted grey — secondary text, captions */
+  --color-accent:        #253247;  /* Navy+1 — hover backgrounds on dark */
+  --color-border:        rgba(255, 255, 255, 0.06);  /* Barely-there line */
 }
 
 @layer base {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, Shield, CreditCard, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navItems = [
   { href: "/settings/profile", label: "Profile", icon: User },
@@ -45,7 +46,8 @@ export function ProfileSidebar({ onSignOut, isSigningOut }: ProfileSidebarProps)
         })}
       </div>
 
-      <div className="mt-auto pt-4 border-t">
+      <div className="mt-auto pt-4 border-t space-y-1">
+        <ThemeToggle />
         <button
           onClick={onSignOut}
           disabled={isSigningOut}
