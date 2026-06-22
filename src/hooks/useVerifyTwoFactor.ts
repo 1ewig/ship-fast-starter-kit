@@ -14,7 +14,6 @@ export function useVerifyTwoFactor() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [trustDevice, setTrustDevice] = useState(false);
   const [attemptCount, setAttemptCount] = useState(0);
 
   useEffect(() => {
@@ -45,7 +44,7 @@ export function useVerifyTwoFactor() {
 
     setStep("ready");
     setResendCooldown(60);
-  }, [trustDevice, router]);
+  }, [router]);
 
   useEffect(() => {
     sendOtp();
@@ -68,7 +67,7 @@ export function useVerifyTwoFactor() {
 
     setStep("verifying");
 
-    const { data, error: apiError } = await authClient.twoFactor.verifyOtp({ code, trustDevice });
+    const { data, error: apiError } = await authClient.twoFactor.verifyOtp({ code });
 
     if (apiError) {
       const newCount = attemptCount + 1;
@@ -97,8 +96,6 @@ export function useVerifyTwoFactor() {
     setCode,
     error,
     resendCooldown,
-    trustDevice,
-    setTrustDevice,
     attemptCount,
     handleResend,
     handleVerify,

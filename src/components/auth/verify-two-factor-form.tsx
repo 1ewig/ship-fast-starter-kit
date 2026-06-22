@@ -12,8 +12,6 @@ export function VerifyTwoFactorForm() {
     setCode,
     error,
     resendCooldown,
-    trustDevice,
-    setTrustDevice,
     handleResend,
     handleVerify,
   } = useVerifyTwoFactor();
@@ -77,16 +75,6 @@ export function VerifyTwoFactorForm() {
       {error && (
         <p className="text-sm text-destructive text-center">{error}</p>
       )}
-
-      <label className="flex items-center justify-center gap-2 text-sm text-muted-foreground cursor-pointer">
-        <input
-          type="checkbox"
-          checked={trustDevice}
-          onChange={(e) => setTrustDevice(e.target.checked)}
-          className="rounded"
-        />
-        Remember this device for 30 days
-      </label>
 
       <div className="flex justify-center gap-2">
         <Button type="submit" disabled={code.length !== 6 || step === "verifying"}>
