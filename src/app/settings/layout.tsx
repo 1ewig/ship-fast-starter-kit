@@ -1,4 +1,4 @@
-import { ProfileLayoutClient } from "@/components/profile/profile-layout-client";
+import { ProfileLayoutClient } from "@/components/settings/profile-layout-client";
 import { getAvailableProviders } from "@/lib/auth-providers";
 
 export default function SettingsLayout({

@@ -8,8 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Shield } from "lucide-react";
-import { ChangePasswordCard } from "@/components/profile/change-password-card";
-import { ChangeEmailCard } from "@/components/profile/change-email-card";
+import { ChangePasswordCard } from "@/components/settings/change-password-card";
+import { ChangeEmailCard } from "@/components/settings/change-email-card";
 
 export function SecurityClient() {
   return (

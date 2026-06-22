@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ProfileInfoClient } from "@/components/profile/profile-info-client";
+import { ProfileInfoClient } from "@/components/settings/profile-info-client";
 import { getAvailableProviders } from "@/lib/auth-providers";
 
 export const metadata: Metadata = {

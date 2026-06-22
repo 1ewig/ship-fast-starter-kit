@@ -4,6 +4,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { twoFactor, multiSession, admin, bearer } from "better-auth/plugins";
 import { sendEmail } from "@/lib/email";
+import { passwordResetHtml, emailVerificationHtml } from "@/lib/email-templates";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -34,17 +35,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: "Reset your password - SaaS Starter Kit",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; line-height: 1.5;">
-            <h2>Password Reset Request</h2>
-            <p>Hi ${user.name || "there"},</p>
-            <p>We received a request to reset your password. Click the button below to proceed:</p>
-            <div style="margin: 20px 0;">
-              <a href="${url}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Reset Password</a>
-            </div>
-            <p>If you didn't request this, you can ignore this email.</p>
-          </div>
-        `,
+        html: passwordResetHtml(user.name, url),
       });
     },
   },
@@ -57,17 +48,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: "Verify your email - SaaS Starter Kit",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; line-height: 1.5;">
-            <h2>Verify Your Email Address</h2>
-            <p>Hi ${user.name || "there"},</p>
-            <p>Welcome to SaaS Starter Kit! Please verify your email address by clicking the button below:</p>
-            <div style="margin: 20px 0;">
-              <a href="${url}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-            </div>
-            <p>Looking forward to having you on board.</p>
-          </div>
-        `,
+        html: emailVerificationHtml(user.name, url),
       });
     },
   },

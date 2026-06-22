@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { setOtp } from "@/lib/otp-store";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit-store";
+import { passwordChangeOtpHtml } from "@/lib/email-templates";
 import crypto from "node:crypto";
 
 export type RequestOtpResult =
@@ -35,18 +36,7 @@ export async function requestPasswordChangeOtp(newPassword: string): Promise<Req
     await sendEmail({
       to: user.email,
       subject: "Your password change OTP",
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; line-height: 1.5;">
-          <h2>Password Change Request</h2>
-          <p>Hi ${user.name || "there"},</p>
-          <p>We received a request to change your password. Use the following OTP to confirm:</p>
-          <div style="margin: 20px 0; text-align: center;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; background: #f4f4f4; padding: 12px 24px; border-radius: 8px;">${otp}</span>
-          </div>
-          <p>This code expires in <strong>5 minutes</strong>.</p>
-          <p>If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `,
+      html: passwordChangeOtpHtml(user.name, otp),
     });
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to send OTP email." };

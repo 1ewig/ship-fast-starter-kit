@@ -7,9 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AvatarUpload } from "@/components/profile/avatar-upload";
-import { NameForm } from "@/components/profile/name-form";
-import { SocialAccounts } from "@/components/profile/social-accounts";
+import { AvatarUpload } from "@/components/settings/avatar-upload";
+import { NameForm } from "@/components/settings/name-form";
+import { SocialAccounts } from "@/components/settings/social-accounts";
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
 import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
 import type { SocialProvider } from "@/lib/auth-providers";

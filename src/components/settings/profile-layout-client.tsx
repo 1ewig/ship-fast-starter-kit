@@ -2,7 +2,7 @@
 
 import type { SocialProvider } from "@/lib/auth-providers";
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
-import { ProfileSidebar } from "@/components/profile/profile-sidebar";
+import { ProfileSidebar } from "@/components/settings/profile-sidebar";
 
 interface ProfileLayoutClientProps {
   availableProviders: SocialProvider[];

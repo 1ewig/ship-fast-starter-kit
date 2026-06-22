@@ -9,6 +9,7 @@ import { setPendingEmail, getPendingEmail, deletePendingEmail } from "@/lib/pend
 import { verifyPassword as verifyPw } from "@better-auth/utils/password";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit-store";
+import { emailChangeOtpHtml, emailChangedNotificationHtml } from "@/lib/email-templates";
 import crypto from "node:crypto";
 
 export type CheckEmailResult =
@@ -93,18 +94,7 @@ export async function sendEmailChangeOtp(newEmail: string, currentPassword: stri
     await sendEmail({
       to: normalized,
       subject: "Verify your new email address",
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; line-height: 1.5;">
-          <h2>Email Change Request</h2>
-          <p>Hi ${session.user.name || "there"},</p>
-          <p>Use the following code to verify your new email address:</p>
-          <div style="margin: 20px 0; text-align: center;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; background: #f4f4f4; padding: 12px 24px; border-radius: 8px;">${otp}</span>
-          </div>
-          <p>This code expires in <strong>10 minutes</strong>.</p>
-          <p>If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `,
+      html: emailChangeOtpHtml(session.user.name, otp),
     });
   } catch (err: any) {
     deletePendingEmail(userId);
@@ -168,14 +158,7 @@ export async function confirmEmailChange(otp: string): Promise<ConfirmEmailResul
     await sendEmail({
       to: oldEmail,
       subject: "Your email address has been changed",
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; line-height: 1.5;">
-          <h2>Email Address Changed</h2>
-          <p>Hi ${session.user.name || "there"},</p>
-          <p>Your email address has been changed to <strong>${newEmail}</strong>.</p>
-          <p>If you didn't make this change, please contact support immediately.</p>
-        </div>
-      `,
+      html: emailChangedNotificationHtml(session.user.name, newEmail),
     });
   } catch {
     // Notification to old email is best-effort

@@ -89,9 +89,9 @@ Page (server)  →  Container (client)  →  Hook (logic)  →  Presentational (
 | Layer | File Pattern | Responsibility |
 |-------|-------------|---------------|
 | Page | `src/app/**/page.tsx` | Server component, resolves providers, renders container |
-| Container | `src/components/home/dashboard-client.tsx`, `src/components/profile/profile-layout-client.tsx` | Wires hooks to presentational components |
+| Container | `src/components/settings/*-client.tsx` | Wires hooks to presentational components |
 | Hook | `src/hooks/use*.ts` | State management, API calls, validation |
-| Presentational | `src/components/auth/*.tsx`, `src/components/profile/*.tsx` | Pure UI, receives props only |
+| Presentational | `src/components/auth/*.tsx`, `src/components/settings/*.tsx` | Pure UI, receives props only |
 
 ### File Structure
 
@@ -115,7 +115,7 @@ src/
 ├── components/
 │   ├── auth/           # Presentational auth components
 │   ├── home/           # Dashboard components
-│   ├── profile/        # Settings components
+│   ├── settings/       # Settings components
 │   └── ui/             # Shared UI (shadcn)
 ├── hooks/              # Business logic hooks
 ├── lib/
@@ -123,8 +123,13 @@ src/
 │   ├── auth.ts         # Server auth config
 │   ├── auth-client.ts  # Client auth API
 │   ├── auth-providers.ts
-│   ├── dal.ts          # Data Access Layer
+│   ├── dal.ts          # Data Access Layer (with session cache)
 │   ├── email.ts        # Brevo SMTP integration
+│   ├── email-templates.ts  # All email HTML templates
+│   ├── otp-store.ts    # In-memory 5-min OTP store
+│   ├── pending-email-store.ts  # In-memory 10-min email change store
+│   ├── rate-limit-store.ts  # In-memory action rate limiter
+│   ├── session-cache.ts  # 60s TTL cache keyed by cookie+auth
 │   └── supabase.ts     # Supabase admin client
 ├── db/
 │   ├── schema.ts       # Drizzle schema
@@ -139,12 +144,14 @@ src/
 
 - **Email/Password** — Sign in, sign up, forgot password, reset password
 - **OAuth Providers** — GitHub, Google, Discord (dynamic — add new providers in 2 files)
-- **Email Verification** — Required before sign-in, inline resend with 60s cooldown
+- **Email Verification** — Required before sign-in, inline resend with 60s cooldown persisted to localStorage
 - **Password Reset** — Separate `/forgot-password` and `/reset-password` pages
-- **2FA** — TOTP-based two-factor authentication
+- **2FA** — TOTP-based (setup/enable still in progress — placeholder on Security page)
 - **Multi-Session** — Up to 5 concurrent sessions per user
 - **Bearer Token** — API authentication for programmatic access
 - **Admin** — Role-based access control (user/admin roles)
+- **OTP-Based Password Change** — 3 stages (form → OTP → done), password verified against stored hash, session revocation on success
+- **OTP-Based Email Change** — 4 stages (email → password → OTP → done), triple uniqueness checks, old email notified, session revocation
 
 ### Dashboard
 
@@ -153,10 +160,10 @@ src/
 
 ### Settings
 
-- **Sidebar Navigation** — ShipFast branding, Profile/Security/Billing links, Sign Out button
+- **Sidebar Navigation** — ShipFast branding, Profile/Security/Billing links, dark mode toggle, Sign Out button
 - **Viewport-Locked Sidebar** — Sidebar stays fixed, only main content scrolls
-- **Profile** — Avatar upload/delete, display name editing, social account management
-- **Security** — Password, email, 2FA (placeholder)
+- **Profile** — Avatar upload/delete, display name editing with optimistic UI, social account management (link/unlink)
+- **Security** — Password change (OTP flow), email change (OTP flow), 2FA setup (placeholder)
 - **Billing** — Payment, subscription (placeholder)
 
 ### Profile Management
@@ -169,10 +176,12 @@ src/
 ### Security
 
 - **Database-Backed Rate Limiting** — 5 sign-in attempts/10s, 3 sign-ups/10s, 2 verification resends/min
-- **Account Linking** — Trusted providers only (GitHub), prevents cross-email takeover
+- **In-Memory Action Rate Limiting** — 3 OTP dispatches/60s, 5 OTP confirmations/60s per user
+- **Account Linking** — Trusted providers (GitHub, Google, Discord), `allowDifferentEmails: true`
 - **Email Enumeration Protection** — Sacrificed for UX (every error has actionable next step)
-- **DAL Session Guards** — `requireAuth()`, `requireAdmin()` with React cache deduplication
+- **DAL Session Guards** — `requireAuth()`, `requireAdmin()` with React cache deduplication + 60s in-memory TTL
 - **Service Role Isolation** — Supabase service role key used server-only, never exposed to client
+- **OTP Duration** — 5 min for password change, 10 min for email change
 
 ## Custom Engineering (What Better Auth Doesn't Provide)
 
@@ -239,11 +248,11 @@ Client hooks check `result.success` — TypeScript enforces exhaustive error han
 
 ### 8. DAL (Data Access Layer)
 
-`requireAuth()` and `requireAdmin()` wrap `auth.api.getSession()` with React's `cache()` for request-level deduplication. Multiple calls in one request tree result in only 1 database query.
+`requireAuth()` and `requireAdmin()` wrap `auth.api.getSession()` with React's `cache()` for request-level deduplication. An in-memory 60s TTL cache keyed by cookie + authorization header further deduplicates across requests. Multiple calls in one request tree result in only 1 database query.
 
 ### 9. Verification Cooldown Persistence
 
-Resend verification cooldown timer persists in `localStorage`. User navigates away and comes back — timer continues. Prevents spam-clicking.
+Resend verification cooldown timer persists in `localStorage` via the shared `useCooldown("verification")` hook. Same key is used across sign-in and sign-up forms — clicking resend on one page carries the cooldown to the other. Survives page refresh and navigation.
 
 ### 10. Account Linking Security
 
@@ -251,13 +260,98 @@ Resend verification cooldown timer persists in `localStorage`. User navigates aw
 account: {
   accountLinking: {
     enabled: true,
-    trustedProviders: ["github"],  // Only GitHub auto-links
-    allowDifferentEmails: false,   // Prevents cross-email takeover
+    trustedProviders: ["github", "google", "discord"],
+    allowDifferentEmails: true,  // Social accounts don't need matching primary email
   },
 }
 ```
 
 Plus a database hook that blocks OAuth sign-ups from unverified social emails.
+
+### 11. In-Memory OTP Store
+
+Zero-dependency 5-minute TTL store for password change OTPs. Single-server safe, swappable to Redis later via the same interface.
+
+```ts
+setOtp(userId, otp);      // TTL resets on each set
+getOtp(userId) → string | null;  // null if expired or not found
+deleteOtp(userId);
+```
+
+### 12. In-Memory Pending Email Store
+
+10-minute TTL store holding `newEmail` + `otp` for the email change flow. Cleaned up automatically after expiry or on confirmation.
+
+```ts
+setPendingEmail(userId, newEmail, otp);
+getPendingEmail(userId) → { newEmail, otp } | null;
+deletePendingEmail(userId);
+```
+
+### 13. In-Memory Action Rate Limiter
+
+Simple Map-based rate limiter for custom server actions. Lazy eviction — expired entries are treated as new windows.
+
+```ts
+checkRateLimit(key: string, max: number, windowMs: number): boolean;
+```
+
+Applied to:
+
+| Action | Key | Limit |
+|--------|-----|-------|
+| Password change OTP | `password-otp:{userId}` | 3 per 60s |
+| Email change OTP | `change-email-otp:{userId}` | 3 per 60s |
+| Password confirmation | `password-confirm:{userId}` | 5 per 60s |
+| Email confirmation | `email-confirm:{userId}` | 5 per 60s |
+
+### 14. OTP-Based Password Change Flow
+
+Three-stage state machine on the Security page:
+
+```
+[Set new password + confirm]  →  [Enter 6-digit OTP]  →  [Done]
+```
+
+- New password validated (≥10 chars, matches confirm) before OTP dispatch
+- OTP sent to verified email, 5-minute window
+- Password verified against stored hash before DB update
+- `revokeOtherSessions()` fires on success (invalidates all other devices)
+- Resend button with self-decrementing 60s cooldown
+
+### 15. OTP-Based Email Change Flow
+
+Four-stage state machine on the Security page:
+
+```
+[Enter new email]  →  [Confirm current password]  →  [Enter OTP]  →  [Done]
+```
+
+- Email uniqueness checked at every stage (TOCTOU guard in the final confirm)
+- Password verified against stored hash before OTP dispatch
+- OTP sent to the *new* email address, 10-minute window
+- Old email receives notification (best-effort)
+- `revokeOtherSessions()` fires on success
+
+### 16. Shared Cooldown Hook
+
+`useCooldown(key)` persists cooldown expiry timestamps to `localStorage`. On mount it reads the saved timestamp and calculates remaining seconds. Page refreshes and navigation between sign-in/sign-up don't reset the timer.
+
+```ts
+const { cooldown, start, reset } = useCooldown("verification");
+```
+
+### 17. Email Template Extraction
+
+All 5 email HTML templates are centralized in `src/lib/email-templates.ts`:
+
+| Function | Used By |
+|----------|---------|
+| `passwordResetHtml(name, url)` | Better Auth password reset callback |
+| `emailVerificationHtml(name, url)` | Better Auth verification callback |
+| `passwordChangeOtpHtml(name, otp)` | Password change server action |
+| `emailChangeOtpHtml(name, otp)` | Email change OTP dispatch |
+| `emailChangedNotificationHtml(name, newEmail)` | Email change notification to old address |
 
 ## Routes
 
@@ -266,8 +360,8 @@ Plus a database hook that blocks OAuth sign-ups from unverified social emails.
 | `/` | Dashboard (protected) |
 | `/settings` | Redirects to `/settings/profile` |
 | `/settings/profile` | Avatar, display name, social accounts |
-| `/settings/security` | Password, email, 2FA |
-| `/settings/billing` | Payment, subscription |
+| `/settings/security` | Password change, email change, 2FA |
+| `/settings/billing` | Payment, subscription (placeholder) |
 | `/sign-in` | Sign in with email/password or OAuth |
 | `/sign-up` | Create account with email verification |
 | `/forgot-password` | Request password reset email |
@@ -279,7 +373,7 @@ Plus a database hook that blocks OAuth sign-ups from unverified social emails.
 
 ```bash
 bun run dev          # Start dev server
-bun run build        # Production build
+bun run build        # Production build (compiles TypeScript + validates types)
 bun run start        # Start production server
 bun run lint         # Run ESLint
 bun run db:push      # Push schema to database
@@ -296,6 +390,12 @@ Create the `avatars` bucket manually in the Supabase Dashboard:
 3. Public bucket: **ON**
 4. File size limit: `5242880` (5MB)
 5. Allowed MIME types: `image/jpeg, image/png, image/webp, image/gif`
+
+## Design System
+
+The visual identity is driven by 8 core color tokens in `globals.css`. Change these 8 values and the entire app rebrands. Dark mode swaps all 8 tokens. Fonts are loaded via `next/font/google` (Plus Jakarta Sans for body, Herr Von Muellerhoff for accent).
+
+See `docs/CODING_STANDARDS.md` for the full token reference and usage rules.
 
 ## License
 
