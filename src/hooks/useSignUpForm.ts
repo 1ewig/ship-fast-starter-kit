@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, signUp, authClient } from "@/lib/auth-client";
+import { signIn, signUp, sendVerificationEmail } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
 import type { SocialProvider } from "@/lib/auth-providers";
 
@@ -145,7 +145,7 @@ export function useSignUpForm(availableProviders: SocialProvider[]) {
     setResendSuccess("");
     setResendError("");
 
-    const { error } = await authClient.sendVerificationEmail({
+    const { error } = await sendVerificationEmail({
       email: targetEmail,
       callbackURL: "/",
     });
@@ -154,10 +154,9 @@ export function useSignUpForm(availableProviders: SocialProvider[]) {
 
     if (error) {
       if (error.status === 429) {
-        setResendError("Too many requests. Please wait before trying again.");
-      } else {
-        setResendError(error.message || "Failed to resend verification email.");
+        setResendCooldown(60);
       }
+      setResendError(error.message || "Failed to send verification email.");
     } else {
       setResendSuccess("Verification email sent! Check your inbox.");
       setResendCooldown(60);

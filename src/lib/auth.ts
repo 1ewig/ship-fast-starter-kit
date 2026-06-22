@@ -138,6 +138,8 @@ export const auth = betterAuth({
       "/sign-in/email": { window: 10, max: 5 },
       "/sign-up/email": { window: 10, max: 3 },
       "/email-verification/send-verification-email": { window: 60, max: 2 },
+      "/request-password-reset": { window: 60, max: 2 },
+      "/reset-password": { window: 300, max: 5 },
     },
   },
 

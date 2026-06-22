@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, authClient } from "@/lib/auth-client";
+import { signIn, sendVerificationEmail } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
 import type { SocialProvider } from "@/lib/auth-providers";
 
@@ -19,29 +19,9 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
   const [resendSuccess, setResendSuccess] = useState("");
 
   useEffect(() => {
-    const storedCooldown = localStorage.getItem("verification_resend_cooldown");
-    if (storedCooldown) {
-      const timeRemaining = Math.ceil(
-        (parseInt(storedCooldown, 10) - Date.now()) / 1000
-      );
-      if (timeRemaining > 0) {
-        setResendCooldown(timeRemaining);
-      } else {
-        localStorage.removeItem("verification_resend_cooldown");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
     if (resendCooldown <= 0) return;
     const interval = setInterval(() => {
-      setResendCooldown((prev) => {
-        if (prev <= 1) {
-          localStorage.removeItem("verification_resend_cooldown");
-          return 0;
-        }
-        return prev - 1;
-      });
+      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
     return () => clearInterval(interval);
   }, [resendCooldown]);
@@ -107,7 +87,7 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
     setResendSuccess("");
     setGeneralError("");
 
-    const { error } = await authClient.sendVerificationEmail({
+    const { error } = await sendVerificationEmail({
       email: email.trim().toLowerCase(),
       callbackURL: "/",
     });
@@ -115,15 +95,9 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
     setIsResending(false);
 
     if (error) {
-      const message =
-        error.status === 429
-          ? "Too many requests. Please wait a bit before trying again."
-          : error.message || "Failed to resend verification email.";
-      setGeneralError(message);
+      setGeneralError(error.message || "Failed to send verification email.");
     } else {
       setResendSuccess("Verification email sent! Check your inbox.");
-      const targetTime = Date.now() + 60000;
-      localStorage.setItem("verification_resend_cooldown", targetTime.toString());
       setResendCooldown(60);
     }
   };

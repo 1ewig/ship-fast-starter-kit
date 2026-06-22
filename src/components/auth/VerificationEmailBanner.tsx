@@ -12,6 +12,13 @@ interface VerificationEmailBannerProps {
   resendError?: string;
 }
 
+function formatCooldown(seconds: number): string {
+  const mins = Math.ceil(seconds / 60);
+  if (mins >= 60) return `${Math.ceil(mins / 60)}h`;
+  if (mins >= 5) return `${mins}min`;
+  return `${seconds}s`;
+}
+
 export function VerificationEmailBanner({
   onResend,
   isResending,
@@ -44,7 +51,7 @@ export function VerificationEmailBanner({
             Sending...
           </>
         ) : cooldown > 0 ? (
-          `Resend in ${cooldown}s`
+          `Resend in ${formatCooldown(cooldown)}`
         ) : (
           "Resend verification email"
         )}
