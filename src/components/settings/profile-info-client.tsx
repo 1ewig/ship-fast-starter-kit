@@ -8,10 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { AvatarUpload } from "@/components/settings/avatar-upload";
-import { NameForm } from "@/components/settings/name-form";
 import { SocialAccounts } from "@/components/settings/social-accounts";
 import { useHomeDashboard } from "@/hooks/useHomeDashboard";
-import { useUpdateNameForm } from "@/hooks/useUpdateNameForm";
 import type { SocialProvider } from "@/lib/auth-providers";
 
 interface ProfileInfoClientProps {
@@ -28,8 +26,6 @@ export function ProfileInfoClient({ availableProviders }: ProfileInfoClientProps
     handleLinkSocial,
   } = useHomeDashboard(availableProviders);
 
-  const nameForm = useUpdateNameForm(session?.user?.name || "");
-
   if (!session) return null;
 
   return (
@@ -43,21 +39,11 @@ export function ProfileInfoClient({ availableProviders }: ProfileInfoClientProps
 
       <Card>
         <CardHeader>
-          <CardTitle>Photo</CardTitle>
-          <CardDescription>Your profile picture is visible to other users.</CardDescription>
+          <CardTitle>Photo & Display Name</CardTitle>
+          <CardDescription>Your profile photo and display name visible to other users.</CardDescription>
         </CardHeader>
         <CardContent>
           <AvatarUpload user={session.user} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Display Name</CardTitle>
-          <CardDescription>Your name visible across the application.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <NameForm nameForm={nameForm} />
         </CardContent>
       </Card>
 
