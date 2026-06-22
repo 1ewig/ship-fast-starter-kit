@@ -50,6 +50,8 @@ export async function confirmPasswordChange(
       .update(account)
       .set({ password: passwordHash })
       .where(eq(account.id, credentialAccount.id));
+
+    await auth.api.revokeOtherSessions({ headers: await headers() });
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to update password." };
   }
