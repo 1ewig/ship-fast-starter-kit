@@ -122,8 +122,8 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: true,
-      trustedProviders: ["github"], // Restrict automatic mapping to highly trusted verified emails
-      allowDifferentEmails: false, // Prevent cross-email takeover vulnerabilities
+      trustedProviders: ["github", "google", "discord"],
+      allowDifferentEmails: true,
     },
   },
 
