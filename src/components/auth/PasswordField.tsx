@@ -29,7 +29,7 @@ export function PasswordField({
   disabled,
   showPassword,
   onToggleShow,
-  placeholder = "At least 8 characters",
+  placeholder = "At least 10 characters",
   autoFocus,
   required = true,
   autoComplete,
@@ -53,6 +53,8 @@ export function PasswordField({
             autoFocus={autoFocus}
             required={required}
             autoComplete={autoComplete}
+            minLength={10}
+            maxLength={128}
           />
           <button
             type="button"

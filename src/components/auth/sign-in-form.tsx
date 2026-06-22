@@ -93,6 +93,7 @@ export function SignInForm({
                     disabled={form.isLoading}
                     autoFocus
                     required
+                    maxLength={254}
                   />
                   {form.errors.email && (
                     <FieldError errors={[{ message: form.errors.email }]} />

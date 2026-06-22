@@ -148,6 +148,7 @@ export function SignUpForm({
                     disabled={form.isLoading}
                     autoFocus
                     required
+                    maxLength={100}
                   />
                   {form.errors.name && (
                     <FieldError errors={[{ message: form.errors.name }]} />
@@ -169,6 +170,7 @@ export function SignUpForm({
                     }}
                     disabled={form.isLoading}
                     required
+                    maxLength={254}
                   />
                   {form.errors.email && (
                     <FieldError errors={[{ message: form.errors.email }]} />

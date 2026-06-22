@@ -134,6 +134,7 @@ export function ChangePasswordCard() {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={10}
+              maxLength={128}
               className="pr-9"
             />
             <button
@@ -155,6 +156,7 @@ export function ChangePasswordCard() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
+              maxLength={128}
               className="pr-9"
             />
             <button

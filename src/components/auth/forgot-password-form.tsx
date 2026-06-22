@@ -106,6 +106,7 @@ export function ForgotPasswordForm({
                     disabled={form.isLoading}
                     autoFocus
                     required
+                    maxLength={254}
                   />
                 </FieldContent>
               </Field>

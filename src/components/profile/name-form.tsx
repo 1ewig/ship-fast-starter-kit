@@ -35,6 +35,7 @@ export function NameForm({ nameForm }: NameFormProps) {
             disabled={nameForm.isUpdating}
             className="h-9"
             required
+            maxLength={100}
           />
         </div>
         <Button
