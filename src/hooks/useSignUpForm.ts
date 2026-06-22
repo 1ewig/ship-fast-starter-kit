@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { signIn, signUp, sendVerificationEmail } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
 import type { SocialProvider } from "@/lib/auth-providers";
+import { useCooldown } from "@/hooks/useCooldown";
 
 export type AccountStatus =
   | "verified"
@@ -27,17 +28,12 @@ export function useSignUpForm(availableProviders: SocialProvider[]) {
   const [success, setSuccess] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const {
+    cooldown: resendCooldown,
+    start: startResendCooldown,
+  } = useCooldown("verification");
   const [resendSuccess, setResendSuccess] = useState("");
   const [resendError, setResendError] = useState("");
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const interval = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [resendCooldown]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -154,12 +150,12 @@ export function useSignUpForm(availableProviders: SocialProvider[]) {
 
     if (error) {
       if (error.status === 429) {
-        setResendCooldown(60);
+        startResendCooldown(60);
       }
       setResendError(error.message || "Failed to send verification email.");
     } else {
       setResendSuccess("Verification email sent! Check your inbox.");
-      setResendCooldown(60);
+      startResendCooldown(60);
     }
   };
 

@@ -7,6 +7,7 @@ import { headers } from "next/headers";
 import { eq, and } from "drizzle-orm";
 import { getOtp, deleteOtp } from "@/lib/otp-store";
 import { hashPassword as hashPw } from "@better-auth/utils/password";
+import { checkRateLimit } from "@/lib/rate-limit-store";
 
 export type ConfirmOtpResult =
   | { success: true; error?: never }
@@ -28,6 +29,10 @@ export async function confirmPasswordChange(
 
   if (storedOtp !== otp) {
     return { success: false, error: "Invalid OTP code." };
+  }
+
+  if (!checkRateLimit("password-confirm:" + userId, 5, 60_000)) {
+    return { success: false, error: "Too many attempts. Please wait before trying again." };
   }
 
   if (newPassword.length < 10) {

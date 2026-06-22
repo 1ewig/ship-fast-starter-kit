@@ -83,8 +83,8 @@ export function ChangeEmailCard() {
               <p className="text-sm text-destructive">{error}</p>
             )}
 
-            <div className="flex gap-2">
-              <Button type="submit" disabled={isLoading || otp.length !== 6} className="flex-1">
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading || otp.length !== 6}>
                 {isLoading ? (
                   <>
                     <Loader2 className="animate-spin" />
@@ -133,25 +133,26 @@ export function ChangeEmailCard() {
               <p className="text-sm text-destructive">{error}</p>
             )}
 
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  Sending code...
-                </>
-              ) : (
-                "Send Verification Code"
-              )}
-            </Button>
-
-            <button
-              type="button"
-              onClick={handleBackToEmail}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mx-auto"
-            >
-              <ArrowLeft className="size-3.5" />
-              Change email address
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleBackToEmail}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="size-3.5" />
+                Change email address
+              </button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Sending code...
+                  </>
+                ) : (
+                  "Confirm Password"
+                )}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
@@ -188,16 +189,18 @@ export function ChangeEmailCard() {
             <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? (
-              <>
-                <Loader2 className="animate-spin" />
-                Checking...
-              </>
-            ) : (
-              "Confirm"
-            )}
-          </Button>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </Button>
+            </div>
         </form>
       </CardContent>
     </Card>

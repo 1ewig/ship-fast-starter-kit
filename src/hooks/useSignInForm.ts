@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { signIn, sendVerificationEmail } from "@/lib/auth-client";
 import { checkAccountExists } from "@/lib/actions/check-account";
 import type { SocialProvider } from "@/lib/auth-providers";
+import { useCooldown } from "@/hooks/useCooldown";
 
 export function useSignInForm(availableProviders: SocialProvider[]) {
   const [email, setEmail] = useState("");
@@ -14,17 +15,12 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState("");
   const [isResending, setIsResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
+  const {
+    cooldown: resendCooldown,
+    start: startResendCooldown,
+  } = useCooldown("verification");
   const [isEmailUnverified, setIsEmailUnverified] = useState(false);
   const [resendSuccess, setResendSuccess] = useState("");
-
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const interval = setInterval(() => {
-      setResendCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [resendCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,10 +91,13 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
     setIsResending(false);
 
     if (error) {
+      if (error.status === 429) {
+        startResendCooldown(60);
+      }
       setGeneralError(error.message || "Failed to send verification email.");
     } else {
       setResendSuccess("Verification email sent! Check your inbox.");
-      setResendCooldown(60);
+      startResendCooldown(60);
     }
   };
 

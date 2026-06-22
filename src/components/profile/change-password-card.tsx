@@ -176,16 +176,18 @@ export function ChangePasswordCard() {
             <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? (
-              <>
-                <Loader2 className="animate-spin" />
-                Sending OTP...
-              </>
-            ) : (
-              "Send OTP"
-            )}
-          </Button>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Sending OTP...
+                </>
+              ) : (
+                "Send OTP"
+              )}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

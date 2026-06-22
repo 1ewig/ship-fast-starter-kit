@@ -38,7 +38,7 @@ export function useChangePasswordForm() {
     }
 
     setIsLoading(true);
-    const result = await requestPasswordChangeOtp();
+    const result = await requestPasswordChangeOtp(newPassword);
     setIsLoading(false);
 
     if (!result.success) {
@@ -54,7 +54,7 @@ export function useChangePasswordForm() {
     setError("");
     setOtp("");
     setIsLoading(true);
-    const result = await requestPasswordChangeOtp();
+    const result = await requestPasswordChangeOtp(newPassword);
     setIsLoading(false);
 
     if (!result.success) {

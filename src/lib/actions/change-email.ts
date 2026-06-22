@@ -8,6 +8,7 @@ import { eq, and } from "drizzle-orm";
 import { setPendingEmail, getPendingEmail, deletePendingEmail } from "@/lib/pending-email-store";
 import { verifyPassword as verifyPw } from "@better-auth/utils/password";
 import { sendEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit-store";
 import crypto from "node:crypto";
 
 export type CheckEmailResult =
@@ -76,6 +77,10 @@ export async function sendEmailChangeOtp(newEmail: string, currentPassword: stri
     return { success: false, error: "No password account found." };
   }
 
+  if (!checkRateLimit("change-email-otp:" + userId, 3, 60_000)) {
+    return { success: false, error: "Too many requests. Please wait before trying again." };
+  }
+
   const valid = await verifyPw(credentialAccount.password, currentPassword);
   if (!valid) {
     return { success: false, error: "Current password is incorrect." };
@@ -119,6 +124,10 @@ export async function confirmEmailChange(otp: string): Promise<ConfirmEmailResul
 
   const userId = session.user.id;
   const oldEmail = session.user.email!;
+
+  if (!checkRateLimit("email-confirm:" + userId, 5, 60_000)) {
+    return { success: false, error: "Too many attempts. Please wait before trying again." };
+  }
 
   const pending = getPendingEmail(userId);
   if (!pending) {
