@@ -7,7 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Shield, Lock, Mail } from "lucide-react";
+import { Shield, Mail } from "lucide-react";
+import { ChangePasswordCard } from "@/components/profile/change-password-card";
 
 export function SecurityClient() {
   return (
@@ -19,24 +20,7 @@ export function SecurityClient() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-              <Lock className="size-5 text-muted-foreground" />
-            </div>
-            <div>
-              <CardTitle>Password</CardTitle>
-              <CardDescription>Change your password to keep your account secure.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Password change coming soon.
-          </p>
-        </CardContent>
-      </Card>
+      <ChangePasswordCard />
 
       <Card>
         <CardHeader>
