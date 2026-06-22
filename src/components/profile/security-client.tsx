@@ -7,8 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Shield, Mail } from "lucide-react";
+import { Shield } from "lucide-react";
 import { ChangePasswordCard } from "@/components/profile/change-password-card";
+import { ChangeEmailCard } from "@/components/profile/change-email-card";
 
 export function SecurityClient() {
   return (
@@ -22,24 +23,7 @@ export function SecurityClient() {
 
       <ChangePasswordCard />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-              <Mail className="size-5 text-muted-foreground" />
-            </div>
-            <div>
-              <CardTitle>Email Address</CardTitle>
-              <CardDescription>Update the email address associated with your account.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Email change coming soon.
-          </p>
-        </CardContent>
-      </Card>
+      <ChangeEmailCard />
 
       <Card>
         <CardHeader>
