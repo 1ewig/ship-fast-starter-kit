@@ -41,7 +41,8 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
       return;
     }
 
-    const { error } = await signIn.email({ email, password });
+    const res = await signIn.email({ email, password });
+    const { error } = res;
 
     if (error) {
       const msg = error.message?.toLowerCase() || "";
@@ -67,6 +68,16 @@ export function useSignInForm(availableProviders: SocialProvider[]) {
         );
       }
 
+      setIsLoading(false);
+      return;
+    }
+
+    if (
+      res.data &&
+      typeof res.data === "object" &&
+      "twoFactorRedirect" in res.data &&
+      res.data.twoFactorRedirect === true
+    ) {
       setIsLoading(false);
       return;
     }

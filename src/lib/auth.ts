@@ -4,7 +4,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { twoFactor, multiSession, admin, bearer } from "better-auth/plugins";
 import { sendEmail } from "@/lib/email";
-import { passwordResetHtml, emailVerificationHtml } from "@/lib/email-templates";
+import { passwordResetHtml, emailVerificationHtml, twoFactorOtpHtml } from "@/lib/email-templates";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -132,8 +132,26 @@ export const auth = betterAuth({
   plugins: [
     twoFactor({
       issuer: "SaaSStarterKit",
-      totpOptions: { digits: 6, period: 30 },
-      skipVerificationOnEnable: false,
+      totpOptions: { disable: true },
+      otpOptions: {
+        sendOTP: async ({ user, otp }) => {
+          try {
+            await sendEmail({
+              to: user.email,
+              subject: "Your two-factor authentication code",
+              html: twoFactorOtpHtml(user.name, otp),
+            });
+          } catch (err) {
+            console.error("[2FA] Failed to send OTP email:", err);
+            throw err;
+          }
+        },
+        period: 5,
+        digits: 6,
+        allowedAttempts: 3,
+        storeOTP: "encrypted",
+      },
+      skipVerificationOnEnable: true,
     }),
     multiSession({
       maximumSessions: 5,

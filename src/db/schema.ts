@@ -88,6 +88,7 @@ export const twoFactor = authSchema.table("two_factor", {
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
+  verified: boolean("verified").default(true).notNull(),
 });
 
 export const rateLimit = authSchema.table("rate_limit", {

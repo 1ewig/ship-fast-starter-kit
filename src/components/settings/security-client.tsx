@@ -1,17 +1,14 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Shield } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 import { ChangePasswordCard } from "@/components/settings/change-password-card";
 import { ChangeEmailCard } from "@/components/settings/change-email-card";
+import { TwoFactorCard } from "@/components/settings/two-factor-card";
 
 export function SecurityClient() {
+  const { data: session } = useSession();
+  const isEnabled = session?.user.twoFactorEnabled ?? false;
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -25,24 +22,7 @@ export function SecurityClient() {
 
       <ChangeEmailCard />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-md bg-muted">
-              <Shield className="size-5 text-muted-foreground" />
-            </div>
-            <div>
-              <CardTitle>Two-Factor Authentication</CardTitle>
-              <CardDescription>Add an extra layer of security to your account.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Two-factor authentication setup coming soon.
-          </p>
-        </CardContent>
-      </Card>
+      <TwoFactorCard isEnabled={isEnabled} />
     </div>
   );
 }

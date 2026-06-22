@@ -64,6 +64,21 @@ export function emailChangeOtpHtml(name: string | null, otp: string): string {
   `;
 }
 
+export function twoFactorOtpHtml(name: string | null, otp: string): string {
+  return `
+    <div style="${baseStyle}">
+      <h2>Two-Factor Authentication Code</h2>
+      <p>${greet(name)},</p>
+      <p>Use the following code to complete your sign-in:</p>
+      <div style="margin: 20px 0; text-align: center;">
+        <span style="${otpStyle}">${otp}</span>
+      </div>
+      <p>This code expires in <strong>3 minutes</strong>.</p>
+      <p>If you didn't attempt to sign in, please secure your account immediately.</p>
+    </div>
+  `;
+}
+
 export function emailChangedNotificationHtml(name: string | null, newEmail: string): string {
   return `
     <div style="${baseStyle}">
