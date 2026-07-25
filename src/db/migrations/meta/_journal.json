@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1781865630878,
-      "tag": "0000_low_raider",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781867161213,
-      "tag": "0001_fixed_the_hood",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1782139430825,
-      "tag": "0002_quick_alex_wilder",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1784972620687,
-      "tag": "0003_chemical_mariko_yashida",
+      "when": 1784973519757,
+      "tag": "0000_mixed_jimmy_woo",
       "breakpoints": true
     }
   ]

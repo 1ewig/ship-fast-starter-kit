@@ -1,5 +1,5 @@
 {
-  "id": "0edf7afb-6451-4ad2-b364-9609c7c19104",
+  "id": "e1546d6d-8f3f-45c4-9cc8-2ffcfd7025a2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -127,6 +127,52 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "better_auth.email_budget_bucket": {
+      "name": "email_budget_bucket",
+      "schema": "better_auth",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "tokens": {
+          "name": "tokens",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_tokens": {
+          "name": "max_tokens",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
+        },
+        "last_refilled_at": {
+          "name": "last_refilled_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "better_auth.rate_limit": {
       "name": "rate_limit",
       "schema": "better_auth",
@@ -151,7 +197,7 @@
         },
         "last_request": {
           "name": "last_request",
-          "type": "integer",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         }
@@ -298,6 +344,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "verified": {
+          "name": "verified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         }
       },
       "indexes": {},
