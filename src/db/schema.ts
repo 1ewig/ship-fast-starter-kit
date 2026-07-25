@@ -98,6 +98,17 @@ export const rateLimit = authSchema.table("rate_limit", {
   lastRequest: bigint("last_request", { mode: "number" }),
 });
 
+export const emailBudgetBucket = authSchema.table("email_budget_bucket", {
+  id: text("id").primaryKey(),
+  tokens: integer("tokens").notNull(),
+  maxTokens: integer("max_tokens").notNull().default(5),
+  lastRefilledAt: timestamp("last_refilled_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
+});
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),

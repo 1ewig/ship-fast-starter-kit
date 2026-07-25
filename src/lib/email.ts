@@ -1,12 +1,22 @@
+import { consumeEmailBudget, EmailBudgetExceededError } from "@/lib/email-budget";
+
+export { EmailBudgetExceededError };
+
 export async function sendEmail({
   to,
   subject,
   html,
+  bypassBudget = false,
 }: {
   to: string;
   subject: string;
   html: string;
+  bypassBudget?: boolean;
 }) {
+  if (!bypassBudget) {
+    await consumeEmailBudget(to);
+  }
+
   const apiKey = process.env.BREVO_API_KEY;
   const senderEmail = process.env.BREVO_SENDER_EMAIL || "no-reply@localhost";
   const senderName = process.env.BREVO_SENDER_NAME || "SaaS Starter Kit";
