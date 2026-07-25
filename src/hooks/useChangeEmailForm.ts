@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { checkNewEmail, sendEmailChangeOtp, confirmEmailChange } from "@/lib/actions/change-email";
+import { useSession } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export type Stage = "email" | "password" | "otp" | "done";
 
 export function useChangeEmailForm() {
+  const { refetch } = useSession();
+  const router = useRouter();
   const [stage, setStage] = useState<Stage>("email");
   const [newEmail, setNewEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -81,6 +85,14 @@ export function useChangeEmailForm() {
     if (!result.success) {
       setError(result.error);
       return;
+    }
+
+    try {
+      await refetch();
+      router.refresh();
+    } catch (e) {
+      console.warn("[ChangeEmail] Session refresh failed:", e);
+      router.refresh();
     }
 
     setStage("done");
